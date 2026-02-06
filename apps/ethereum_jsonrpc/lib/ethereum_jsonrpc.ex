@@ -190,6 +190,19 @@ defmodule EthereumJSONRPC do
         ) :: {:ok, FetchedBalances.t()} | {:error, reason :: term}
   def fetch_balances(params_list, json_rpc_named_arguments, latest_block_number \\ 0, chunk_size \\ nil)
       when is_list(params_list) and is_list(json_rpc_named_arguments) do
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_balances, 2) do
+      case variant.fetch_balances(params_list, json_rpc_named_arguments) do
+        :ignore -> {:ok, %FetchedBalances{params_list: [], errors: []}}
+        result -> result
+      end
+    else
+      do_fetch_balances(params_list, json_rpc_named_arguments, latest_block_number, chunk_size)
+    end
+  end
+
+  defp do_fetch_balances(params_list, json_rpc_named_arguments, latest_block_number, chunk_size) do
     latest_block_number_params =
       case latest_block_number do
         0 -> fetch_block_number_by_tag("latest", json_rpc_named_arguments)
@@ -379,9 +392,15 @@ defmodule EthereumJSONRPC do
   @spec fetch_blocks_by_hash([hash()], json_rpc_named_arguments, boolean()) ::
           {:ok, Blocks.t()} | {:error, reason :: term}
   def fetch_blocks_by_hash(block_hashes, json_rpc_named_arguments, with_transactions? \\ true) do
-    block_hashes
-    |> Enum.map(fn block_hash -> %{hash: block_hash} end)
-    |> fetch_blocks_by_params(&Block.ByHash.request(&1, with_transactions?), json_rpc_named_arguments)
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_blocks_by_hash, 3) do
+      variant.fetch_blocks_by_hash(block_hashes, json_rpc_named_arguments, with_transactions?)
+    else
+      block_hashes
+      |> Enum.map(fn block_hash -> %{hash: block_hash} end)
+      |> fetch_blocks_by_params(&Block.ByHash.request(&1, with_transactions?), json_rpc_named_arguments)
+    end
   end
 
   @doc """
@@ -389,9 +408,15 @@ defmodule EthereumJSONRPC do
   """
   @spec fetch_blocks_by_range(Range.t(), json_rpc_named_arguments) :: {:ok, Blocks.t()} | {:error, reason :: term}
   def fetch_blocks_by_range(_first.._last//_ = range, json_rpc_named_arguments) do
-    range
-    |> Enum.map(fn number -> %{number: number} end)
-    |> fetch_blocks_by_params(&Block.ByNumber.request/1, json_rpc_named_arguments)
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_blocks_by_range, 2) do
+      variant.fetch_blocks_by_range(range, json_rpc_named_arguments)
+    else
+      range
+      |> Enum.map(fn number -> %{number: number} end)
+      |> fetch_blocks_by_params(&Block.ByNumber.request/1, json_rpc_named_arguments)
+    end
   end
 
   @doc """
@@ -412,9 +437,15 @@ defmodule EthereumJSONRPC do
   @spec fetch_blocks_by_numbers([block_number()], json_rpc_named_arguments(), boolean()) ::
           {:ok, Blocks.t()} | {:error, reason :: term}
   def fetch_blocks_by_numbers(block_numbers, json_rpc_named_arguments, with_transactions? \\ true) do
-    block_numbers
-    |> Enum.map(fn number -> %{number: number} end)
-    |> fetch_blocks_by_params(&Block.ByNumber.request(&1, with_transactions?), json_rpc_named_arguments)
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_blocks_by_numbers, 3) do
+      variant.fetch_blocks_by_numbers(block_numbers, json_rpc_named_arguments, with_transactions?)
+    else
+      block_numbers
+      |> Enum.map(fn number -> %{number: number} end)
+      |> fetch_blocks_by_params(&Block.ByNumber.request(&1, with_transactions?), json_rpc_named_arguments)
+    end
   end
 
   @doc """
@@ -433,8 +464,14 @@ defmodule EthereumJSONRPC do
   @spec fetch_block_by_tag(tag(), json_rpc_named_arguments) ::
           {:ok, Blocks.t()} | {:error, reason :: :invalid_tag | :not_found | term()}
   def fetch_block_by_tag(tag, json_rpc_named_arguments) when tag in ~w(earliest latest pending safe) do
-    [%{tag: tag}]
-    |> fetch_blocks_by_params(&Block.ByTag.request/1, json_rpc_named_arguments)
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_block_by_tag, 2) do
+      variant.fetch_block_by_tag(tag, json_rpc_named_arguments)
+    else
+      [%{tag: tag}]
+      |> fetch_blocks_by_params(&Block.ByTag.request/1, json_rpc_named_arguments)
+    end
   end
 
   @doc """
@@ -485,9 +522,15 @@ defmodule EthereumJSONRPC do
   @spec fetch_block_number_by_tag(tag(), json_rpc_named_arguments) ::
           {:ok, non_neg_integer()} | {:error, reason :: :invalid_tag | :not_found | term()}
   def fetch_block_number_by_tag(tag, json_rpc_named_arguments) when tag in ~w(earliest latest pending safe) do
-    tag
-    |> fetch_block_by_tag(json_rpc_named_arguments)
-    |> Block.ByTag.number_from_result()
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_block_number_by_tag, 2) do
+      variant.fetch_block_number_by_tag(tag, json_rpc_named_arguments)
+    else
+      tag
+      |> fetch_block_by_tag(json_rpc_named_arguments)
+      |> Block.ByTag.number_from_result()
+    end
   end
 
   @doc """
@@ -590,7 +633,16 @@ defmodule EthereumJSONRPC do
           json_rpc_named_arguments
         ) :: {:ok, %{logs: list(), receipts: list()}} | {:error, reason :: term}
   def fetch_transaction_receipts(transactions_params, json_rpc_named_arguments) when is_list(transactions_params) do
-    Receipts.fetch(transactions_params, json_rpc_named_arguments)
+    variant = Keyword.get(json_rpc_named_arguments, :variant)
+
+    if variant && function_exported?(variant, :fetch_receipts, 2) do
+      case variant.fetch_receipts(transactions_params, json_rpc_named_arguments) do
+        :ignore -> {:ok, %{logs: [], receipts: []}}
+        result -> result
+      end
+    else
+      Receipts.fetch(transactions_params, json_rpc_named_arguments)
+    end
   end
 
   @doc """

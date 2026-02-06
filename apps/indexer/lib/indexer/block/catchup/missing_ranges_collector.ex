@@ -61,6 +61,8 @@ defmodule Indexer.Block.Catchup.MissingRangesCollector do
   use GenServer
   use Utils.CompileTimeEnvHelper, future_check_interval: [:indexer, [__MODULE__, :future_check_interval]]
 
+  require Logger
+
   alias EthereumJSONRPC.Utility.RangesHelper
   alias Explorer.{Chain, Repo}
   alias Explorer.Chain.Cache.Counters.LastFetchedCounter
@@ -77,12 +79,11 @@ defmodule Indexer.Block.Catchup.MissingRangesCollector do
 
   @impl true
   def init(_) do
-    {:ok, %{min_fetched_block_number: nil, max_fetched_block_number: nil}, {:continue, :ok}}
-  end
-
-  @impl true
-  def handle_continue(:ok, _state) do
-    {:noreply, define_init()}
+    # Run define_init synchronously so missing_block_ranges is populated before
+    # BoundIntervalSupervisor starts the catchup task (avoids race where
+    # get_latest_batch returns [] because the collector hasn't run yet).
+    state = define_init()
+    {:ok, state}
   end
 
   # Determines and initializes the appropriate missing block range collection state.
@@ -274,11 +275,14 @@ defmodule Indexer.Block.Catchup.MissingRangesCollector do
     case MissingBlockRange.fetch_min_max() do
       %{min: nil, max: nil} ->
         max_number = last_block()
+        Logger.info("[seth] MissingRangesCollector get_initial_min_max max_number=#{max_number} (from last_block)")
         {min_number, first_batch} = fetch_missing_ranges_batch(max_number, false)
+        Logger.info("[seth] MissingRangesCollector first_batch ranges=#{length(first_batch)} min_number=#{min_number}")
         MissingBlockRange.save_batch(first_batch)
         {min_number, max_number}
 
       %{min: min, max: max} ->
+        Logger.debug("[seth] MissingRangesCollector get_initial_min_max existing min=#{min} max=#{max}")
         {min, max}
     end
   end
@@ -401,8 +405,12 @@ defmodule Indexer.Block.Catchup.MissingRangesCollector do
     json_rpc_named_arguments = Application.get_env(:indexer, :json_rpc_named_arguments)
 
     case EthereumJSONRPC.fetch_block_number_by_tag("latest", json_rpc_named_arguments) do
-      {:ok, number} -> number
-      _ -> 0
+      {:ok, number} ->
+        Logger.info("[seth] MissingRangesCollector fetch_max_block_number_from_node latest=#{number}")
+        number
+      err ->
+        Logger.warning("[seth] MissingRangesCollector fetch_max_block_number_from_node failed #{inspect(err)} using 0")
+        0
     end
   end
 

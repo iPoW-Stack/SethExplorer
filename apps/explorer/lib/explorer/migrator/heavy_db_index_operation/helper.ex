@@ -120,16 +120,36 @@ defmodule Explorer.Migrator.HeavyDbIndexOperation.Helper do
     run_create_db_index_query(query)
   end
 
+  @max_deadlock_retries 5
+  @deadlock_retry_delay_ms 2_000
+
   @spec run_create_db_index_query(String.t()) :: :ok | :error
   # sobelow_skip ["SQL"]
-  defp run_create_db_index_query(query) do
+  defp run_create_db_index_query(query), do: run_create_db_index_query(query, 0)
+
+  defp run_create_db_index_query(_query, attempt) when attempt >= @max_deadlock_retries do
+    Logger.error(
+      "Failed to run create DB index query after #{@max_deadlock_retries} retries (deadlock)"
+    )
+
+    :error
+  end
+
+  defp run_create_db_index_query(query, attempt) do
     case SQL.query(Repo, query, [], timeout: :infinity) do
       {:ok, _} ->
         :ok
 
+      {:error, %{postgres: %{code: :deadlock_detected}}} = error when attempt < @max_deadlock_retries ->
+        Logger.warning(
+          "Create DB index deadlock detected (attempt #{attempt + 1}/#{@max_deadlock_retries}), retrying in #{@deadlock_retry_delay_ms}ms"
+        )
+
+        Process.sleep(@deadlock_retry_delay_ms)
+        run_create_db_index_query(query, attempt + 1)
+
       {:error, error} ->
         Logger.error("Failed to run create DB index query: #{inspect(error)}")
-
         :error
     end
   end

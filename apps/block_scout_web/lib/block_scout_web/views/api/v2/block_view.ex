@@ -49,6 +49,7 @@ defmodule BlockScoutWeb.API.V2.BlockView do
 
     %{
       "height" => block.number,
+      "pool_index" => block.pool_index,
       "timestamp" => block.timestamp,
       "transactions_count" => block.transactions_count,
       "internal_transactions_count" => count_internal_transactions(block),

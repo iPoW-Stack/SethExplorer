@@ -2,6 +2,13 @@ FROM hexpm/elixir:1.19.4-erlang-27.3.4.6-alpine-3.22.2 AS builder-deps
 
 WORKDIR /app
 
+# Use Alpine mirror if primary CDN fails (e.g. pass APK_MIRROR=mirrors.aliyun.com for China)
+ARG APK_MIRROR
+RUN if [ -n "$APK_MIRROR" ]; then \
+  sed -i "s/dl-cdn.alpinelinux.org/$APK_MIRROR/g" /etc/apk/repositories; \
+else \
+  sed -i 's/dl-cdn.alpinelinux.org/dl-2.alpinelinux.org/g' /etc/apk/repositories; \
+fi
 RUN apk --no-cache --update add \
     alpine-sdk gmp-dev automake libtool inotify-tools autoconf python3 file gcompat libstdc++ curl ca-certificates git make bash
 
@@ -55,6 +62,12 @@ FROM hexpm/elixir:1.19.4-erlang-27.3.4.6-alpine-3.22.2
 
 WORKDIR /app
 
+ARG APK_MIRROR
+RUN if [ -n "$APK_MIRROR" ]; then \
+  sed -i "s/dl-cdn.alpinelinux.org/$APK_MIRROR/g" /etc/apk/repositories; \
+else \
+  sed -i 's/dl-cdn.alpinelinux.org/dl-2.alpinelinux.org/g' /etc/apk/repositories; \
+fi
 ARG BLOCKSCOUT_USER=blockscout
 ARG BLOCKSCOUT_GROUP=blockscout
 ARG BLOCKSCOUT_UID=10001

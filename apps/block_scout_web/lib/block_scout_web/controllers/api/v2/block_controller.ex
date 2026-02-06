@@ -148,8 +148,8 @@ defmodule BlockScoutWeb.API.V2.BlockController do
   operation :block,
     summary: "Retrieves detailed information for a specific block identified by its number or hash.",
     description:
-      "Retrieves detailed information for a specific block, including transactions, internal transactions, and metadata.",
-    parameters: [block_hash_or_number_param() | base_params()],
+      "Retrieves detailed information for a specific block, including transactions, internal transactions, and metadata. On sharded chains (e.g. Seth), when using block number you may pass pool_index to identify a specific block.",
+    parameters: [block_hash_or_number_param() | base_params()] ++ [block_pool_index_param()],
     responses: [
       ok: {"Detailed information about the specified block.", "application/json", Schemas.Block.Response},
       unprocessable_entity: JsonErrorResponse.response(),
@@ -163,13 +163,25 @@ defmodule BlockScoutWeb.API.V2.BlockController do
           {:error, :not_found | {:invalid, :hash | :number}}
           | {:lost_consensus, {:error, :not_found} | {:ok, Explorer.Chain.Block.t()}}
           | Plug.Conn.t()
-  def block(conn, %{block_hash_or_number_param: block_hash_or_number}) do
-    with {:ok, block} <- block_param_to_block(block_hash_or_number, @block_params) do
+  def block(conn, %{block_hash_or_number_param: block_hash_or_number} = params) do
+    options = merge_pool_index_into_options(@block_params, params)
+    with {:ok, block} <- block_param_to_block(block_hash_or_number, options) do
       conn
       |> put_status(200)
       |> render(:block, %{block: block})
     end
   end
+
+  defp merge_pool_index_into_options(opts, %{pool_index: pi}) when is_integer(pi), do: Keyword.put(opts, :pool_index, pi)
+
+  defp merge_pool_index_into_options(opts, %{pool_index: pi}) when is_binary(pi) do
+    case Integer.parse(pi) do
+      {n, ""} when n >= 0 -> Keyword.put(opts, :pool_index, n)
+      _ -> opts
+    end
+  end
+
+  defp merge_pool_index_into_options(opts, _), do: opts
 
   defp fetch_block(:hash, hash, params) do
     Chain.hash_to_block(hash, params)
@@ -181,7 +193,7 @@ defmodule BlockScoutWeb.API.V2.BlockController do
         ok_response
 
       _ ->
-        {:lost_consensus, Block.nonconsensus_block_by_number(number, @api_true)}
+        {:lost_consensus, Block.nonconsensus_block_by_number(number, Keyword.take(params, [:api?, :pool_index]))}
     end
   end
 
@@ -402,7 +414,8 @@ defmodule BlockScoutWeb.API.V2.BlockController do
           | {:lost_consensus, {:error, :not_found} | {:ok, Explorer.Chain.Block.t()}}
           | Plug.Conn.t()
   def transactions(conn, %{block_hash_or_number_param: block_hash_or_number} = params) do
-    with {:ok, block} <- block_param_to_block(block_hash_or_number) do
+    options = merge_pool_index_into_options(@api_true, params)
+    with {:ok, block} <- block_param_to_block(block_hash_or_number, options) do
       full_options =
         @transaction_necessity_by_association
         |> Keyword.merge(put_key_value_to_paging_options(paging_options(params), :is_index_in_asc_order, true))
@@ -462,7 +475,8 @@ defmodule BlockScoutWeb.API.V2.BlockController do
           | {:lost_consensus, {:error, :not_found} | {:ok, Explorer.Chain.Block.t()}}
           | Plug.Conn.t()
   def internal_transactions(conn, %{block_hash_or_number_param: block_hash_or_number} = params) do
-    with {:ok, block} <- block_param_to_block(block_hash_or_number) do
+    options = merge_pool_index_into_options(@api_true, params)
+    with {:ok, block} <- block_param_to_block(block_hash_or_number, options) do
       full_options =
         @internal_transaction_necessity_by_association
         |> Keyword.merge(paging_options(params))
@@ -524,7 +538,8 @@ defmodule BlockScoutWeb.API.V2.BlockController do
           | {:lost_consensus, {:error, :not_found} | {:ok, Explorer.Chain.Block.t()}}
           | Plug.Conn.t()
   def withdrawals(conn, %{block_hash_or_number_param: block_hash_or_number} = params) do
-    with {:ok, block} <- block_param_to_block(block_hash_or_number) do
+    options = merge_pool_index_into_options(@api_true, params)
+    with {:ok, block} <- block_param_to_block(block_hash_or_number, options) do
       full_options =
         [
           necessity_by_association: %{
@@ -652,7 +667,8 @@ defmodule BlockScoutWeb.API.V2.BlockController do
           | {:lost_consensus, {:error, :not_found} | {:ok, Explorer.Chain.Block.t()}}
           | Plug.Conn.t()
   def beacon_deposits(conn, %{block_hash_or_number_param: block_hash_or_number} = params) do
-    with {:ok, block} <- block_param_to_block(block_hash_or_number) do
+    options = merge_pool_index_into_options(@api_true, params)
+    with {:ok, block} <- block_param_to_block(block_hash_or_number, options) do
       full_options =
         [
           necessity_by_association: %{

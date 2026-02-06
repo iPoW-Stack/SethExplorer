@@ -130,6 +130,7 @@ defmodule EthereumJSONRPC.Variant do
     case Application.get_env(:explorer, :chain_type) do
       :rsk -> "rsk"
       :filecoin -> "filecoin"
+      :seth -> "seth"
       _ -> "geth"
     end
   end

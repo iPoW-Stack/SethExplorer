@@ -531,14 +531,28 @@ defmodule BlockScoutWeb.Notifier do
 
   @doc """
   Broadcast the percentage of blocks or pending block operations indexed so far.
+  Skips broadcast if Endpoint is not ready (e.g. during startup when ETS table not yet created).
   """
   @spec broadcast_indexed_ratio(String.t(), Decimal.t()) ::
           :ok | {:error, term()}
   def broadcast_indexed_ratio(msg, ratio) do
-    Endpoint.broadcast(msg, "index_status", %{
-      ratio: Decimal.to_string(ratio),
-      finished: Chain.finished_indexing_from_ratio?(ratio)
-    })
+    if endpoint_ready?() do
+      Endpoint.broadcast(msg, "index_status", %{
+        ratio: Decimal.to_string(ratio),
+        finished: Chain.finished_indexing_from_ratio?(ratio)
+      })
+    else
+      :ok
+    end
+  end
+
+  defp endpoint_ready? do
+    case :ets.whereis(Endpoint) do
+      :undefined -> false
+      _ -> true
+    end
+  rescue
+    ArgumentError -> false
   end
 
   defp broadcast_latest_block?(block, last_broadcasted_block_number) do

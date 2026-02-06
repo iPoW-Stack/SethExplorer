@@ -80,9 +80,10 @@ defmodule BlockScoutWeb.GraphQL.Schema do
       complexity(fn %{hashes: hashes}, child_complexity -> length(hashes) * child_complexity end)
     end
 
-    @desc "Gets a block by number."
+    @desc "Gets a block by number. On sharded chains (e.g. Seth), pass pool_index to identify a specific block."
     field :block, :block do
       arg(:number, non_null(:integer))
+      arg(:pool_index, :integer)
       resolve(&Block.get_by/3)
     end
 

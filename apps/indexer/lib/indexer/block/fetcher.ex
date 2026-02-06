@@ -175,10 +175,18 @@ defmodule Indexer.Block.Fetcher do
              transactions_params: transactions_params_without_receipts,
              withdrawals_params: withdrawals_params,
              block_second_degree_relations_params: block_second_degree_relations_params,
-             errors: blocks_errors
+             errors: blocks_errors,
+             logs_params: variant_logs,
+             receipts_params: variant_receipts
            } = fetched_blocks}} <- {:blocks, fetch_result},
          blocks = TransformBlocks.transform_blocks(blocks_params),
-         {:receipts, {:ok, receipt_params}} <- {:receipts, Receipts.fetch(state, transactions_params_without_receipts)},
+         {:receipts, {:ok, receipt_params}} <-
+           {:receipts,
+            # Use variant-provided receipts/logs when present (e.g. Seth from txList); logs may be [] if no events.
+            if(variant_receipts != [],
+              do: {:ok, %{logs: variant_logs || [], receipts: variant_receipts}},
+              else: Receipts.fetch(state, transactions_params_without_receipts)
+            )},
          %{logs: receipt_logs, receipts: receipts} = receipt_params,
          transactions_with_receipts = Receipts.put(transactions_params_without_receipts, receipts),
          celo_epoch_logs = CeloEpochLogs.fetch(blocks, json_rpc_named_arguments),

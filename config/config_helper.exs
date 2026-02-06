@@ -424,7 +424,8 @@ defmodule ConfigHelper do
     "zilliqa" => :zilliqa,
     "zksync" => :zksync,
     "neon" => :neon,
-    "optimism-celo" => {:optimism, :celo}
+    "optimism-celo" => {:optimism, :celo},
+    "seth" => :seth
   }
 
   @doc """

@@ -1518,27 +1518,56 @@ defmodule Explorer.Chain do
   @doc """
   Finds consensus `t:Explorer.Chain.Block.t/0` with `number`.
 
+  When `pool_index` is present in options (e.g. for Seth sharded chains), the block is uniquely
+  identified by `(number, pool_index)`. When absent, a single block is returned; if multiple
+  consensus blocks exist for the same number, the one with the smallest `pool_index` is returned.
+
   ## Options
 
     * `:necessity_by_association` - use to load `t:association/0` as `:required` or `:optional`.  If an association is
       `:required`, and the `t:Explorer.Chain.Block.t/0` has no associated record for that association, then the
       `t:Explorer.Chain.Block.t/0` will not be included in the page `entries`.
+    * `:pool_index` - optional integer; when set, restricts to the block with that pool_index (identity is number + pool_index).
 
   """
-  @spec number_to_block(Block.block_number(), [necessity_by_association_option | api?]) ::
+  @spec number_to_block(
+          Block.block_number(),
+          [necessity_by_association_option | api? | {:pool_index, non_neg_integer()}]
+        ) ::
           {:ok, Block.t()} | {:error, :not_found}
   def number_to_block(number, options \\ []) when is_list(options) do
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    pool_index = Keyword.get(options, :pool_index)
 
-    Block
-    |> where(consensus: true, number: ^number)
-    |> join_associations(necessity_by_association)
+    base =
+      Block
+      |> where(consensus: true, number: ^number)
+      |> maybe_filter_pool_index(pool_index)
+      |> join_associations(necessity_by_association)
+
+    query =
+      if is_integer(pool_index) do
+        base
+      else
+        # Multiple blocks per number (sharded): return deterministic one by smallest pool_index
+        base
+        |> order_by(asc: :pool_index)
+        |> limit(1)
+      end
+
+    query
     |> select_repo(options).one()
     |> case do
       nil -> {:error, :not_found}
       block -> {:ok, block}
     end
   end
+
+  defp maybe_filter_pool_index(query, pool_index) when is_integer(pool_index) do
+    where(query, [block], block.pool_index == ^pool_index)
+  end
+
+  defp maybe_filter_pool_index(query, _), do: query
 
   def default_page_size, do: @default_page_size
 

@@ -105,7 +105,13 @@ defmodule Explorer.Chain.Import.Runner.Transactions do
     on_conflict = Map.get_lazy(options, :on_conflict, &default_on_conflict/0)
 
     # Enforce Transaction ShareLocks order (see docs: sharelocks.md)
-    ordered_changes_list = Enum.sort_by(changes_list, & &1.hash)
+    # Also ensure we don't propose multiple rows with the same conflict_target (:hash)
+    # in a single INSERT ... ON CONFLICT batch, which would cause Postgrex
+    # ERROR 21000 (cardinality_violation).
+    ordered_changes_list =
+      changes_list
+      |> Enum.sort_by(& &1.hash)
+      |> Enum.uniq_by(& &1.hash)
 
     Import.insert_changes_list(
       repo,

@@ -246,6 +246,21 @@ defmodule BlockScoutWeb.Schemas.API.V2.General do
   end
 
   @doc """
+  Returns an optional query parameter for pool_index when fetching a block by number (sharded/Seth chains).
+  """
+  @spec block_pool_index_param() :: Parameter.t()
+  def block_pool_index_param do
+    %Parameter{
+      name: :pool_index,
+      in: :query,
+      schema: %Schema{type: :integer, minimum: 0},
+      required: false,
+      description:
+        "When identifying block by number on sharded chains (e.g. Seth): pool index to uniquely identify the block. Omit when using block hash."
+    }
+  end
+
+  @doc """
   Returns a parameter definition for a block number in the path.
   """
   @spec block_number_param() :: Parameter.t()

@@ -15,7 +15,10 @@ defmodule EthereumJSONRPC.Blocks do
     block_second_degree_relations_params: [],
     transactions_params: [],
     withdrawals_params: [],
-    errors: []
+    errors: [],
+    # Optional: when variant (e.g. Seth) provides receipts/logs from block txList, use instead of separate fetch.
+    logs_params: [],
+    receipts_params: []
   ]
 
   case @chain_type do
@@ -51,7 +54,9 @@ defmodule EthereumJSONRPC.Blocks do
           block_second_degree_relations_params: [map()],
           transactions_params: [map()],
           withdrawals_params: Withdrawals.params(),
-          errors: [Transport.error()]
+          errors: [Transport.error()],
+          logs_params: [map()],
+          receipts_params: [map()]
         }
 
   defstruct @default_struct_fields ++ @chain_type_struct_fields

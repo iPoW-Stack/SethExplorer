@@ -53,6 +53,7 @@ defmodule Indexer.Block.Catchup.Fetcher do
 
     case MissingBlockRange.get_latest_batch(blocks_batch_size() * blocks_concurrency()) do
       [] ->
+        Logger.info("[seth] block_catchup get_latest_batch returned [] (no missing ranges in DB)")
         %{
           first_block_number: nil,
           last_block_number: nil,

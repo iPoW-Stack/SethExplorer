@@ -54,6 +54,9 @@ defmodule EthereumJSONRPC.Block do
                            ]
                          )
 
+    :seth ->
+      @chain_type_fields quote(do: [{optional(:pool_index), non_neg_integer()}])
+
     _ ->
       @chain_type_fields quote(do: [])
   end
@@ -577,6 +580,14 @@ defmodule EthereumJSONRPC.Block do
         params
         |> Map.merge(%{
           zilliqa_view: Map.get(elixir, "view")
+        })
+      end
+
+    :seth ->
+      defp chain_type_fields(params, elixir) do
+        params
+        |> Map.merge(%{
+          pool_index: Map.get(elixir, "pool_index")
         })
       end
 

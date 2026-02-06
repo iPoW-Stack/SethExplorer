@@ -519,6 +519,18 @@ defmodule Explorer.Chain.Import.Runner.Blocks do
     }
   end
 
+  defp on_conflict_chain_type_extension(:seth) do
+    {
+      [
+        pool_index: dynamic(fragment("EXCLUDED.pool_index"))
+      ],
+      dynamic(
+        [block],
+        fragment("EXCLUDED.pool_index IS DISTINCT FROM ?", block.pool_index)
+      )
+    }
+  end
+
   defp on_conflict_chain_type_extension(_), do: nil
 
   defp consensus_block_numbers(blocks_changes) when is_list(blocks_changes) do

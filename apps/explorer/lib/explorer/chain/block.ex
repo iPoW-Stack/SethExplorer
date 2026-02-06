@@ -168,6 +168,9 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
+        # Always include pool_index so Seth sharded chains can store (number, pool_index)
+        # regardless of compile-time chain_type.
+        field(:pool_index, :integer)
         field(:aggregated?, :boolean, virtual: true)
         field(:transactions_count, :integer, virtual: true)
         field(:blob_transactions_count, :integer, virtual: true)
@@ -235,7 +238,7 @@ defmodule Explorer.Chain.Block do
   alias Explorer.Chain.Block.{EmissionReward, Reward, SecondDegreeRelation}
   alias Explorer.Utility.MissingBlockRange
 
-  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas)a
+  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas pool_index)a
 
   @chain_type_optional_attrs (case @chain_type do
                                 :rsk ->
@@ -1021,16 +1024,27 @@ defmodule Explorer.Chain.Block do
     :ok
   end
 
-  @spec nonconsensus_block_by_number(Block.block_number(), [Chain.api?()]) :: {:ok, Block.t()} | {:error, :not_found}
+  @spec nonconsensus_block_by_number(Block.block_number(), [Chain.api?() | {:pool_index, non_neg_integer()}]) ::
+          {:ok, Block.t()} | {:error, :not_found}
   def nonconsensus_block_by_number(number, options) do
+    pool_index = Keyword.get(options, :pool_index)
+
     __MODULE__
     |> where(consensus: false, number: ^number)
+    |> maybe_filter_pool_index(pool_index)
+    |> then(fn q -> if is_integer(pool_index), do: q, else: q |> order_by(asc: :pool_index) |> limit(1) end)
     |> Chain.select_repo(options).one()
     |> case do
       nil -> {:error, :not_found}
       block -> {:ok, block}
     end
   end
+
+  defp maybe_filter_pool_index(query, pool_index) when is_integer(pool_index) do
+    where(query, [b], b.pool_index == ^pool_index)
+  end
+
+  defp maybe_filter_pool_index(query, _), do: query
 
   @doc """
   The `t:Explorer.Chain.Wei.t/0` paid to the miners of the `t:Explorer.Chain.Block.t/0`s with `hash`

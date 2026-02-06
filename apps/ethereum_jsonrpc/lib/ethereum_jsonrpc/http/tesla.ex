@@ -18,12 +18,17 @@ defmodule EthereumJSONRPC.HTTP.Tesla do
 
     case Tesla.post(TeslaHelper.client(options), url, json, headers: headers, opts: TeslaHelper.request_opts(options)) do
       {:ok, %Tesla.Env{body: body, status: status_code, headers: headers}} ->
-        with {:ok, decoded_body} <- Jason.decode(body),
-             true <- Helper.response_body_has_error?(decoded_body) do
+        if body == nil or body == "" do
           Instrumenter.json_rpc_errors(method)
-        end
+          {:error, :empty_response}
+        else
+          with {:ok, decoded_body} <- Jason.decode(body),
+               true <- Helper.response_body_has_error?(decoded_body) do
+            Instrumenter.json_rpc_errors(method)
+          end
 
-        {:ok, %{body: Helper.try_unzip(body, headers), status_code: status_code}}
+          {:ok, %{body: Helper.try_unzip(body, headers), status_code: status_code}}
+        end
 
       {:error, error} ->
         Instrumenter.json_rpc_errors(method)

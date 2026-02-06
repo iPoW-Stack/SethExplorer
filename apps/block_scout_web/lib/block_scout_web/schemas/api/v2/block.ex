@@ -377,6 +377,7 @@ defmodule BlockScoutWeb.Schemas.API.V2.Block.Common do
       type: :object,
       properties: %{
         height: %Schema{type: :integer, nullable: false, minimum: 0},
+        pool_index: %Schema{type: :integer, minimum: 0, nullable: true, description: "Sharded chain pool index (e.g. Seth); null for non-sharded chains."},
         timestamp: General.Timestamp,
         transactions_count: %Schema{type: :integer, nullable: false},
         internal_transactions_count: %Schema{type: :integer, nullable: true},

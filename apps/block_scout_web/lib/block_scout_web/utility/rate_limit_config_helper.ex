@@ -22,6 +22,10 @@ defmodule BlockScoutWeb.Utility.RateLimitConfigHelper do
          parsed_config <- parse_config(config) do
       parsed_config
     else
+      {:error, :invalid_config_url} ->
+        Logger.debug("No API_RATE_LIMIT_CONFIG_URL set. Using local rate limit config.")
+        fallback_config()
+
       {:error, reason} ->
         Logger.error("Failed to fetch rate limit config: #{inspect(reason)}. Fallback to local config.")
         fallback_config()

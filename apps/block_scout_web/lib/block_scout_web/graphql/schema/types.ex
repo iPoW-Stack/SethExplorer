@@ -196,6 +196,7 @@ defmodule BlockScoutWeb.GraphQL.Schema.Types do
     field(:miner_hash, :address_hash)
     field(:nonce, :nonce_hash)
     field(:number, :integer)
+    field(:pool_index, :integer)
     field(:parent_hash, :full_hash)
     field(:size, :integer)
     field(:timestamp, :datetime)

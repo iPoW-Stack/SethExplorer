@@ -9,39 +9,34 @@ alias Explorer.Repo.ConfigHelper, as: ExplorerConfigHelper
 
 port = ExplorerConfigHelper.get_port()
 
-config :block_scout_web, BlockScoutWeb.Endpoint,
-  secret_key_base:
-    System.get_env("SECRET_KEY_BASE") || "RMgI4C1HSkxsEjdhtGMfwAHfyT6CKWXOgzCboJflfSm4jeAlic52io05KB6mqzc5",
-  http: [
-    port: port
-  ],
-  url: [
-    scheme: "http",
-    host: System.get_env("BLOCKSCOUT_HOST", "localhost")
-  ],
-  https: [
-    port: port + 1,
-    cipher_suite: :compatible,
-    certfile: System.get_env("CERTFILE") || "priv/cert/selfsigned.pem",
-    keyfile: System.get_env("KEYFILE") || "priv/cert/selfsigned_key.pem"
-  ]
+# Enable HTTPS only when both CERTFILE and KEYFILE are set (files are not in repo).
+# Otherwise use HTTP only so Cowboy does not require missing cert/key.
+https_enabled? = System.get_env("CERTFILE") != nil and System.get_env("KEYFILE") != nil
 
-config :block_scout_web, BlockScoutWeb.HealthEndpoint,
+endpoint_base = [
   secret_key_base:
     System.get_env("SECRET_KEY_BASE") || "RMgI4C1HSkxsEjdhtGMfwAHfyT6CKWXOgzCboJflfSm4jeAlic52io05KB6mqzc5",
-  http: [
-    port: port
-  ],
+  http: [port: port],
   url: [
-    scheme: "http",
+    scheme: if(https_enabled?, do: "https", else: "http"),
     host: System.get_env("BLOCKSCOUT_HOST", "localhost")
-  ],
-  https: [
-    port: port + 1,
-    cipher_suite: :compatible,
-    certfile: System.get_env("CERTFILE") || "priv/cert/selfsigned.pem",
-    keyfile: System.get_env("KEYFILE") || "priv/cert/selfsigned_key.pem"
   ]
+]
+
+endpoint_config =
+  if https_enabled? do
+    Keyword.put(endpoint_base, :https, [
+      port: port + 1,
+      cipher_suite: :compatible,
+      certfile: System.get_env("CERTFILE"),
+      keyfile: System.get_env("KEYFILE")
+    ])
+  else
+    endpoint_base
+  end
+
+config :block_scout_web, BlockScoutWeb.Endpoint, endpoint_config
+config :block_scout_web, BlockScoutWeb.HealthEndpoint, endpoint_config
 
 ########################
 ### Ethereum JSONRPC ###

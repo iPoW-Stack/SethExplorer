@@ -6,9 +6,15 @@ defmodule BlockScoutWeb.GraphQL.Resolvers.Block do
 
   @api_true [api?: true]
 
-  def get_by(_, %{number: number}, _) do
+  def get_by(_, %{number: number} = args, _) do
+    options =
+      case Map.get(args, :pool_index) do
+        pi when is_integer(pi) -> Keyword.put(@api_true, :pool_index, pi)
+        _ -> @api_true
+      end
+
     number
-    |> Chain.number_to_block(@api_true)
+    |> Chain.number_to_block(options)
     |> case do
       {:ok, _} = result ->
         result
