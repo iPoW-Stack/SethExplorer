@@ -1000,7 +1000,8 @@ defmodule Explorer.Chain do
   """
   @spec import(Import.all_options()) :: Import.all_result()
   def import(options) do
-    case Import.all(options) do
+    Code.ensure_loaded!(Explorer.Chain.Import)
+    case Explorer.Chain.Import.all(options) do
       {:ok, imported} = result ->
         assets_to_import = %{
           addresses: imported[:addresses] || [],
