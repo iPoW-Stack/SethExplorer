@@ -1,0 +1,8 @@
+{
+  "home": "/",
+  "blocks": "/blocks",
+  "txs": "/txs",
+  "block": "/block/18249102",
+  "tx": "/tx/0x39a1c4b2e5d8f9a0c1b3d4e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6",
+  "address": "/address/0x1234567890abcdef1234567890abcdef12345678"
+}

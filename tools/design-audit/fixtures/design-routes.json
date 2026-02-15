@@ -1,0 +1,8 @@
+{
+  "home": "/",
+  "blocks": "/blocks",
+  "txs": "/txs",
+  "block": "/block_detail",
+  "tx": "/tx_detail",
+  "address": "/address"
+}

@@ -1,0 +1,92 @@
+import type { ThemingConfig } from '@chakra-ui/react';
+
+import type { ExcludeUndefined } from 'types/utils';
+
+// Seth strict visual baseline uses one modern sans type family.
+export const BODY_TYPEFACE = 'Inter, InterFallback';
+export const HEADING_TYPEFACE = 'Inter, InterFallback';
+
+export const fonts: ExcludeUndefined<ThemingConfig['tokens']>['fonts'] = {
+  heading: { value: `${ HEADING_TYPEFACE }, sans-serif` },
+  body: { value: `${ BODY_TYPEFACE }, sans-serif` },
+};
+
+export const textStyles: ThemingConfig['textStyles'] = {
+  heading: {
+    xl: {
+      value: {
+        fontSize: '32px',
+        lineHeight: '40px',
+        fontWeight: '600',
+        letterSpacing: '-0.3px',
+        fontFamily: 'heading',
+      },
+    },
+    lg: {
+      value: {
+        fontSize: '24px',
+        lineHeight: '32px',
+        fontWeight: '600',
+        fontFamily: 'heading',
+      },
+    },
+    md: {
+      value: {
+        fontSize: '18px',
+        lineHeight: '24px',
+        fontWeight: '600',
+        fontFamily: 'heading',
+      },
+    },
+    sm: {
+      value: {
+        fontSize: '16px',
+        lineHeight: '24px',
+        fontWeight: '600',
+        fontFamily: 'heading',
+      },
+    },
+    xs: {
+      value: {
+        fontSize: '14px',
+        lineHeight: '20px',
+        fontWeight: '600',
+        fontFamily: 'heading',
+      },
+    },
+  },
+  text: {
+    xl: {
+      value: {
+        fontSize: '20px',
+        lineHeight: '28px',
+        fontWeight: '400',
+        fontFamily: 'body',
+      },
+    },
+    md: {
+      value: {
+        fontSize: '16px',
+        lineHeight: '24px',
+        fontWeight: '400',
+        fontFamily: 'body',
+      },
+    },
+    sm: {
+      value: {
+        fontSize: '14px',
+        lineHeight: '20px',
+        fontWeight: '400',
+        fontFamily: 'body',
+      },
+    },
+    xs: {
+      value: {
+        fontSize: '12px',
+        lineHeight: '16px',
+        fontWeight: '400',
+        fontFamily: 'body',
+      },
+    },
+  },
+};

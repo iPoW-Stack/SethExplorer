@@ -1,0 +1,63 @@
+import { Box, Flex } from '@chakra-ui/react';
+import React from 'react';
+
+import config from 'configs/app';
+import { SocketProvider } from 'lib/socket/context';
+import { Heading } from 'toolkit/chakra/heading';
+import { Link } from 'toolkit/chakra/link';
+import AdaptiveTabs from 'toolkit/components/AdaptiveTabs/AdaptiveTabs';
+import LatestArbitrumDeposits from 'ui/home/latestDeposits/LatestArbitrumDeposits';
+import LatestOptimisticDeposits from 'ui/home/latestDeposits/LatestOptimisticDeposits';
+import LatestTxs from 'ui/home/LatestTxs';
+import LatestWatchlistTxs from 'ui/home/LatestWatchlistTxs';
+import LatestZetaChainCCTXs from 'ui/home/latestZetaChainCCTX/LatestZetaChainCCTXs';
+import useAuth from 'ui/snippets/auth/useIsAuth';
+
+const rollupFeature = config.features.rollup;
+const zetachainFeature = config.features.zetachain;
+
+const Transactions = () => {
+  const isAuth = useAuth();
+
+  if ((rollupFeature.isEnabled && (rollupFeature.type === 'optimistic' || rollupFeature.type === 'arbitrum')) || isAuth || zetachainFeature.isEnabled) {
+    const tabs = [
+      zetachainFeature.isEnabled && {
+        id: 'cctx',
+        title: 'Cross-chain',
+        component: (
+          <SocketProvider url={ config.apis.zetachain?.socketEndpoint } name="zetachain">
+            <LatestZetaChainCCTXs/>
+          </SocketProvider>
+        ),
+      },
+      { id: 'txn', title: zetachainFeature.isEnabled ? 'ZetaChain EVM' : 'Latest txn', component: <LatestTxs/> },
+      rollupFeature.isEnabled && rollupFeature.type === 'optimistic' &&
+        { id: 'deposits', title: 'Deposits (L1->L2 txn)', component: <LatestOptimisticDeposits/> },
+      rollupFeature.isEnabled && rollupFeature.type === 'arbitrum' &&
+        { id: 'deposits', title: 'Deposits (L1->L2 txn)', component: <LatestArbitrumDeposits/> },
+      isAuth && { id: 'watchlist', title: 'Watch list', component: <LatestWatchlistTxs/> },
+    ].filter(Boolean);
+
+    return (
+      <>
+        <Flex alignItems="center" justifyContent="space-between" mb={ 3 }>
+          <Heading level="3">Latest transactions</Heading>
+          <Link href="/txs" variant="underlaid" textStyle="xs">View all</Link>
+        </Flex>
+        <AdaptiveTabs tabs={ tabs } unmountOnExit={ false } listProps={{ mb: 3 }}/>
+      </>
+    );
+  }
+
+  return (
+    <Box>
+      <Flex alignItems="center" justifyContent="space-between" mb={ 3 }>
+        <Heading level="3">Latest transactions</Heading>
+        <Link href="/txs" variant="underlaid" textStyle="xs">View all</Link>
+      </Flex>
+      <LatestTxs/>
+    </Box>
+  );
+};
+
+export default Transactions;
