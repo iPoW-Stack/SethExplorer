@@ -9,11 +9,14 @@ import DataFetchAlert from '../shared/DataFetchAlert';
 import { mapHomeStatsToCounters } from './fallbackCharts';
 
 const UNITS_WITHOUT_SPACE = [ 's' ];
+const COUNTERS_REFRESH_INTERVAL_MS = 20_000;
 
 const NumberWidgetsList = () => {
   const countersQuery = useApiQuery('stats:counters', {
     queryOptions: {
       placeholderData: { counters: Array(10).fill(STATS_COUNTER) },
+      refetchInterval: COUNTERS_REFRESH_INTERVAL_MS,
+      refetchIntervalInBackground: true,
     },
   });
   const fallbackStatsQuery = useApiQuery('general:stats', {
@@ -21,6 +24,8 @@ const NumberWidgetsList = () => {
       enabled: countersQuery.isError,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
+      refetchInterval: COUNTERS_REFRESH_INTERVAL_MS,
+      refetchIntervalInBackground: true,
       retry: 1,
     },
   });

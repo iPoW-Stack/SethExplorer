@@ -11,6 +11,8 @@ import { STATS_CHARTS } from 'stubs/stats';
 
 import { getFallbackLineCharts } from './fallbackCharts';
 
+const STATS_REFRESH_INTERVAL_MS = 20_000;
+
 function isSectionMatches(section: stats.LineChartSection, currentSection: string): boolean {
   return currentSection === 'all' || section.id === currentSection;
 }
@@ -29,6 +31,8 @@ export default function useStats({ chain }: Props = {}) {
   const linesQuery = useApiQuery('stats:lines', {
     queryOptions: {
       placeholderData: STATS_CHARTS,
+      refetchInterval: STATS_REFRESH_INTERVAL_MS,
+      refetchIntervalInBackground: true,
     },
     chain,
   });
@@ -37,14 +41,16 @@ export default function useStats({ chain }: Props = {}) {
       enabled: linesQuery.isError,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
+      refetchInterval: STATS_REFRESH_INTERVAL_MS,
+      refetchIntervalInBackground: true,
       retry: 1,
     },
     chain,
   });
 
-  const isFallbackMode = linesQuery.isError && fallbackDailyTxsQuery.isSuccess;
+  const isFallbackMode = linesQuery.isError;
   const data = isFallbackMode ? getFallbackLineCharts() : linesQuery.data;
-  const isError = linesQuery.isError && !isFallbackMode && fallbackDailyTxsQuery.isError;
+  const isError = linesQuery.isError && fallbackDailyTxsQuery.isError;
   const isPlaceholderData = linesQuery.isPlaceholderData || (linesQuery.isError && fallbackDailyTxsQuery.isPlaceholderData);
 
   const [ currentSection, setCurrentSection ] = useState('all');

@@ -124,6 +124,7 @@ const STUB_TX_HASHES = [
   '0x1d4ae2f9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a61239a1c4b2e5d8f9a0c1b3',
   '0x7c3ef1b4f9a0b1c2d3e4f5a61239a1c4b2e5d8f9a0c1b3d4e6f7a8b9c0d1e2f3',
 ];
+const LIVE_REFRESH_INTERVAL_MS = 12_000;
 
 export default function useStrictHomeData(): StrictHomeData {
   const dataSource = getSethStrictDataSource();
@@ -132,18 +133,24 @@ export default function useStrictHomeData(): StrictHomeData {
   const statsQuery = useApiQuery('general:stats', {
     queryOptions: {
       enabled: !isStub,
+      refetchInterval: !isStub ? LIVE_REFRESH_INTERVAL_MS : false,
+      refetchIntervalInBackground: true,
       placeholderData: isStub ? HOMEPAGE_STATS : undefined,
     },
   });
   const blocksQuery = useApiQuery('general:homepage_blocks', {
     queryOptions: {
       enabled: !isStub,
+      refetchInterval: !isStub ? LIVE_REFRESH_INTERVAL_MS : false,
+      refetchIntervalInBackground: true,
       placeholderData: isStub ? Array(4).fill(BLOCK) : undefined,
     },
   });
   const txsQuery = useApiQuery('general:homepage_txs', {
     queryOptions: {
       enabled: !isStub,
+      refetchInterval: !isStub ? LIVE_REFRESH_INTERVAL_MS : false,
+      refetchIntervalInBackground: true,
       placeholderData: isStub ? Array(4).fill(TX) : undefined,
     },
   });

@@ -34,6 +34,7 @@ const TAB_LIST_PROPS = {
   backdropFilter: { _dark: 'blur(10px)' },
   marginTop: 0,
 };
+const STRICT_LIVE_REFRESH_INTERVAL_MS = 12_000;
 
 const BlocksPageContent = () => {
   const router = useRouter();
@@ -46,6 +47,8 @@ const BlocksPageContent = () => {
     filters: { type: 'block' },
     options: {
       enabled: isSethStrict || tab === 'blocks' || !tab,
+      refetchInterval: isSethStrict ? STRICT_LIVE_REFRESH_INTERVAL_MS : false,
+      refetchIntervalInBackground: isSethStrict,
       placeholderData: isSethStrict ? undefined : generateListStub<'general:blocks'>(BLOCK, 50, { next_page_params: {
         block_number: 8988686,
         items_count: 50,

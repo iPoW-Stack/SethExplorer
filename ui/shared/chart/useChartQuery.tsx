@@ -14,6 +14,8 @@ import {
 
 import { formatDate } from './utils';
 
+const CHART_LIVE_REFRESH_MS = 15_000;
+
 export default function useChartQuery(id: string, resolution: Resolution, interval: StatsIntervalIds, enabled = true) {
   const { apiData } = useAppContext<'/stats/[id]'>();
 
@@ -32,8 +34,10 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
       resolution,
     },
     queryOptions: {
-      enabled: enabled,
+      enabled: enabled && Boolean(id),
       refetchOnMount: false,
+      refetchInterval: enabled ? CHART_LIVE_REFRESH_MS : false,
+      refetchIntervalInBackground: true,
       placeholderData: {
         info: {
           title: 'Chart title placeholder',
@@ -48,19 +52,24 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
   });
   const fallbackDailyTxsQuery = useApiQuery('general:stats_charts_txs', {
     queryOptions: {
-      enabled: enabled && id === FALLBACK_DAILY_TX_CHART_ID && lineQuery.isError,
+      enabled: enabled && Boolean(id) && id === FALLBACK_DAILY_TX_CHART_ID && lineQuery.isError,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
+      refetchInterval: enabled ? CHART_LIVE_REFRESH_MS : false,
+      refetchIntervalInBackground: true,
       retry: 1,
     },
   });
 
   const fallbackData = mapTransactionsChartToLineChart(fallbackDailyTxsQuery.data);
+  const isFallbackCandidate = id === FALLBACK_DAILY_TX_CHART_ID;
+  const isFallbackPending = lineQuery.isError && isFallbackCandidate &&
+    (fallbackDailyTxsQuery.isPending || fallbackDailyTxsQuery.isFetching || fallbackDailyTxsQuery.fetchStatus === 'fetching');
   const isFallbackDataActive = lineQuery.isError && Boolean(fallbackData);
   const data = isFallbackDataActive ? fallbackData : lineQuery.data;
-  const isError = lineQuery.isError && !isFallbackDataActive;
+  const isError = lineQuery.isError && !isFallbackDataActive && !isFallbackPending;
   const isPlaceholderData = lineQuery.isPlaceholderData || (lineQuery.isError && fallbackDailyTxsQuery.isPlaceholderData);
-  const isPending = lineQuery.isPending || (lineQuery.isError && fallbackDailyTxsQuery.isPending);
+  const isPending = lineQuery.isPending || isFallbackPending;
   const error = (lineQuery.error || fallbackDailyTxsQuery.error) as ResourceError | null;
 
   React.useEffect(() => {

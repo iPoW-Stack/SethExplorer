@@ -37,6 +37,7 @@ const TAB_LIST_PROPS = {
 };
 const TABS_HEIGHT = 88;
 const isSethCompact = config.UI.colorTheme.default?.id === 'seth';
+const STRICT_LIVE_REFRESH_INTERVAL_MS = 12_000;
 
 const Transactions = () => {
   const verifiedTitle = capitalize(getNetworkValidationActionText());
@@ -50,6 +51,8 @@ const Transactions = () => {
     filters: { filter: 'validated' },
     options: {
       enabled: isSethStrict || !tab || tab === 'validated',
+      refetchInterval: isSethStrict ? STRICT_LIVE_REFRESH_INTERVAL_MS : false,
+      refetchIntervalInBackground: isSethStrict,
       placeholderData: isSethStrict ? undefined : generateListStub<'general:txs_validated'>(TX, 50, { next_page_params: {
         block_number: 9005713,
         index: 5,
