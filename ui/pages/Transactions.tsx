@@ -50,7 +50,7 @@ const Transactions = () => {
     filters: { filter: 'validated' },
     options: {
       enabled: isSethStrict || !tab || tab === 'validated',
-      placeholderData: generateListStub<'general:txs_validated'>(TX, 50, { next_page_params: {
+      placeholderData: isSethStrict ? undefined : generateListStub<'general:txs_validated'>(TX, 50, { next_page_params: {
         block_number: 9005713,
         index: 5,
         items_count: 50,

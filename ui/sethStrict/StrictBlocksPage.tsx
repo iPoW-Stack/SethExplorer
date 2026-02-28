@@ -12,6 +12,7 @@ import useStrictBlocksData from './adapters/useStrictBlocksData';
 
 const borderColor = 'rgba(255, 255, 255, 0.08)';
 const headerColor = 'rgba(255, 255, 255, 0.65)';
+const secondaryLinkColor = 'rgba(74, 222, 128, 0.82)';
 
 interface Props {
   query?: QueryWithPagesResult<'general:blocks'>;
@@ -79,15 +80,16 @@ const StrictBlocksPage = ({ query }: Props) => {
             </Flex>
             <Flex
               data-testid="strict-blocks-page-label"
-              minW="116px"
-              px={ 4 }
-              py={ 2 }
+              minW="126px"
+              px={ 3 }
+              py={ 1 }
               borderWidth="1px"
-              borderColor="rgba(100, 116, 139, 0.55)"
-              borderRadius="lg"
-              bgColor="rgba(4, 6, 8, 0.75)"
-              color="gray.300"
+              borderColor="rgba(0, 255, 163, 0.3)"
+              borderRadius="4px"
+              bgColor="rgba(0, 255, 163, 0.2)"
+              color="seth.primary"
               fontSize="sm"
+              fontWeight={ 400 }
               justifyContent="center"
             >
               { pagination?.pageLabel || 'Page -' }
@@ -147,10 +149,13 @@ const StrictBlocksPage = ({ query }: Props) => {
               alignItems="center"
               fontSize="sm"
             >
-              <Link noIcon href={ item.blockHref } data-testid="strict-blocks-row-block-link" color="seth.primary" fontWeight={ 600 }>{ item.block }</Link>
+              <Box>
+                <Link noIcon href={ item.blockHref } data-testid="strict-blocks-row-block-link" color="seth.primary" fontWeight={ 600 }>{ item.block }</Link>
+                { item.poolLabel && <Text mt={ 1 } color="gray.400" fontSize="xs">{ item.poolLabel }</Text> }
+              </Box>
               <Text color="gray.400">{ item.age }</Text>
               <Text color="gray.100">{ item.txns }</Text>
-              { item.minerHref ? <Link noIcon href={ item.minerHref } color="seth.primary">{ item.miner }</Link> : <Text color="seth.primary">{ item.miner }</Text> }
+              { item.minerHref ? <Link noIcon href={ item.minerHref } color={ secondaryLinkColor }>{ item.miner }</Link> : <Text color={ secondaryLinkColor }>{ item.miner }</Text> }
               <Box>
                 <HStack gap={ 2 } alignItems="center">
                   <Box h="6px" borderRadius="full" bgColor="rgba(148, 163, 184, 0.35)" flex={ 1 } maxW="120px" overflow="hidden">

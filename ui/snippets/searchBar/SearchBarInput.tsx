@@ -92,8 +92,9 @@ const SearchBarInput = (
   const startElement = (
     <IconSvg
       name="search"
-      boxSize={ 5 }
+      boxSize={ 4 }
       mx={ 2 }
+      color={ isSethStrict ? 'gray.500' : undefined }
     />
   );
 
@@ -123,10 +124,10 @@ const SearchBarInput = (
       onBlur={ onBlur }
       onClick={ onFormClick }
       w="100%"
-      backgroundColor={{ _light: 'bg.primary', _dark: isSethStrict ? 'rgba(10, 16, 20, 0.72)' : 'rgba(10, 16, 20, 0.78)' }}
-      borderRadius={ isSethStrict ? 'lg' : 'xl' }
-      borderWidth="1px"
-      borderColor={{ _light: 'transparent', _dark: 'rgba(255, 255, 255, 0.1)' }}
+      backgroundColor={{ _light: 'bg.primary', _dark: isSethStrict ? 'transparent' : 'rgba(10, 16, 20, 0.78)' }}
+      borderRadius={ isSethStrict ? '8px' : 'xl' }
+      borderWidth={ isSethStrict ? '0px' : '1px' }
+      borderColor={{ _light: 'transparent', _dark: isSethStrict ? 'transparent' : 'rgba(255, 255, 255, 0.1)' }}
       backdropFilter={{ _dark: isSethStrict ? 'none' : 'blur(10px)' }}
       boxShadow={{ _light: 'none', _dark: isSethStrict ? 'none' : 'inset 0 0 0 1px rgba(0, 255, 163, 0.04)' }}
       position="relative"
@@ -139,11 +140,16 @@ const SearchBarInput = (
       >
         <Input
           size={{ base: isHeroBanner ? 'md' : 'sm', lg: 'md' }}
+          h={ isSethStrict ? '36px' : undefined }
           placeholder={ getPlaceholder() }
           value={ value }
           onChange={ handleChange }
           onFocus={ onFocus }
           tabIndex={ readOnly ? -1 : 0 }
+          borderRadius={ isSethStrict ? '8px' : undefined }
+          fontSize={ isSethStrict ? '14px' : undefined }
+          fontWeight={ isSethStrict ? 400 : undefined }
+          lineHeight={ isSethStrict ? '20px' : undefined }
           borderWidth={ isSethStrict ? '1px' : (isHeroBanner ? borderWidthHeroBanner : '2px') }
           borderStyle="solid"
           borderColor={{ _light: 'blackAlpha.100', _dark: isSethStrict ? 'seth.border' : 'seth.border' }}
@@ -151,7 +157,7 @@ const SearchBarInput = (
           backgroundColor={{
             base: isHeroBanner ? 'input.bg' : 'dialog.bg',
             lg: 'input.bg',
-            _dark: isSethStrict ? 'rgba(10, 16, 20, 0.72)' : 'transparent',
+            _dark: isSethStrict ? 'seth.card' : 'transparent',
           }}
           _hover={{ borderColor: isSethStrict ? 'seth.primary' : 'input.border.hover' }}
           _focusWithin={{

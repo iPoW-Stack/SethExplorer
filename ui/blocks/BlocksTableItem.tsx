@@ -9,6 +9,7 @@ import { route } from 'nextjs-routes';
 
 import config from 'configs/app';
 import getBlockTotalReward from 'lib/block/getBlockTotalReward';
+import { formatSethPoolIndexCompact, getSethPoolIndexHint } from 'lib/seth/poolIndex';
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { TableCell, TableRow } from 'toolkit/chakra/table';
@@ -68,9 +69,9 @@ const BlocksTableItem = ({ data, isLoading, enableTimeIncrement, animation, chai
             </span>
           </Tooltip>
           { data.pool_index != null && (
-            <Tooltip content="Transaction pool index (shard)">
+            <Tooltip content={ getSethPoolIndexHint(data.pool_index) }>
               <chakra.span color="text.secondary" textStyle="sm" ml={ 1 }>
-                ({ data.pool_index })
+                ({ formatSethPoolIndexCompact(data.pool_index) })
               </chakra.span>
             </Tooltip>
           ) }

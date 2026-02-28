@@ -12,6 +12,7 @@ import useStrictTransactionsData from './adapters/useStrictTransactionsData';
 
 const borderColor = 'rgba(255, 255, 255, 0.08)';
 const headerColor = 'rgba(255, 255, 255, 0.65)';
+const secondaryLinkColor = 'rgba(74, 222, 128, 0.82)';
 
 interface Props {
   query?: QueryWithPagesResult<'general:txs_validated'>;
@@ -79,15 +80,16 @@ const StrictTransactionsPage = ({ query }: Props) => {
             </Flex>
             <Flex
               data-testid="strict-txs-page-label"
-              minW="108px"
-              px={ 4 }
-              py={ 2 }
+              minW="124px"
+              px={ 3 }
+              py={ 1 }
               borderWidth="1px"
-              borderColor="rgba(100, 116, 139, 0.55)"
-              borderRadius="lg"
-              bgColor="rgba(4, 6, 8, 0.75)"
-              color="gray.300"
+              borderColor="rgba(0, 255, 163, 0.3)"
+              borderRadius="4px"
+              bgColor="rgba(0, 255, 163, 0.2)"
+              color="seth.primary"
               fontSize="sm"
+              fontWeight={ 400 }
               justifyContent="center"
             >
               { pagination?.pageLabel || 'Page -' }
@@ -148,7 +150,7 @@ const StrictTransactionsPage = ({ query }: Props) => {
               alignItems="center"
               fontSize="sm"
             >
-              <Link noIcon href={ item.txHref } data-testid="strict-txs-row-hash-link" color="seth.primary" fontWeight={ 500 }>{ item.hash }</Link>
+              <Link noIcon href={ item.txHref } data-testid="strict-txs-row-hash-link" color="seth.primary" fontWeight={ 500 } fontFamily="mono">{ item.hash }</Link>
               <Text
                 color={ item.methodTone === 'green' ? '#dcfce7' : '#d1d5db' }
                 bgColor={ item.methodTone === 'green' ? 'rgba(20, 83, 45, 0.45)' : 'rgba(31, 41, 55, 0.65)' }
@@ -165,8 +167,8 @@ const StrictTransactionsPage = ({ query }: Props) => {
               </Text>
               { item.blockHref ? <Link noIcon href={ item.blockHref } color="seth.primary">{ item.block }</Link> : <Text color="seth.primary">{ item.block }</Text> }
               <Text color="gray.400">{ item.age }</Text>
-              { item.fromHref ? <Link noIcon href={ item.fromHref } color="seth.primary">{ item.from }</Link> : <Text color="seth.primary">{ item.from }</Text> }
-              { item.toHref ? <Link noIcon href={ item.toHref } color="seth.primary">{ item.to }</Link> : <Text color="seth.primary">{ item.to }</Text> }
+              { item.fromHref ? <Link noIcon href={ item.fromHref } color={ secondaryLinkColor } fontFamily="mono">{ item.from }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ item.from }</Text> }
+              { item.toHref ? <Link noIcon href={ item.toHref } color={ secondaryLinkColor } fontFamily="mono">{ item.to }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ item.to }</Text> }
               <Text color="gray.100" fontWeight={ 500 }>{ item.value }</Text>
             </Grid>
           )) }

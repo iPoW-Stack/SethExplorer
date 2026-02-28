@@ -1,4 +1,4 @@
-import { Box, Grid } from '@chakra-ui/react';
+import { Box, Flex, Grid, Text } from '@chakra-ui/react';
 import React, { useCallback, useState } from 'react';
 
 import type * as stats from '@blockscout/stats-types';
@@ -84,15 +84,28 @@ const ChartsWidgetsList = ({ isError, isPlaceholderData, charts, interval, initi
                 marginBottom: 0,
               }}
             >
-              <Skeleton loading={ isPlaceholderData } mb={{ base: 3, lg: 4 }} display="inline-flex" alignItems="center" columnGap={ 2 } id={ section.id }>
-                <Heading level="2" id={ section.id }>
-                  { section.title }
-                </Heading>
-                { isGasTrackerEnabled && section.id === 'gas' && homeStatsQuery.data && homeStatsQuery.data.gas_prices && (
-                  <GasInfoTooltip data={ homeStatsQuery.data } dataUpdatedAt={ homeStatsQuery.dataUpdatedAt }>
-                    <IconSvg name="info" boxSize={ 5 } display="block" cursor="pointer" color="icon.secondary" _hover={{ color: 'hover' }}/>
-                  </GasInfoTooltip>
-                ) }
+              <Skeleton loading={ isPlaceholderData } mb={{ base: 3, lg: 4 }} id={ section.id }>
+                <Flex alignItems="center" justifyContent="space-between" columnGap={ 4 } className="seth-page-shell">
+                  <Box>
+                    <Text
+                      color="text.secondary"
+                      textTransform="uppercase"
+                      letterSpacing="0.14em"
+                      fontSize="10px"
+                      mb={ 1 }
+                    >
+                      Chart section
+                    </Text>
+                    <Heading level="2" id={ section.id }>
+                      { section.title }
+                    </Heading>
+                  </Box>
+                  { isGasTrackerEnabled && section.id === 'gas' && homeStatsQuery.data && homeStatsQuery.data.gas_prices && (
+                    <GasInfoTooltip data={ homeStatsQuery.data } dataUpdatedAt={ homeStatsQuery.dataUpdatedAt }>
+                      <IconSvg name="info" boxSize={ 5 } display="block" cursor="pointer" color="icon.secondary" _hover={{ color: 'hover' }}/>
+                    </GasInfoTooltip>
+                  ) }
+                </Flex>
               </Skeleton>
 
               <Grid

@@ -85,16 +85,14 @@ const StrictBlockDetailPage = ({ blockQuery, heightOrHash }: Props) => {
           <Flex
             boxSize="48px"
             borderRadius="xl"
-            bgColor="rgba(10, 16, 20, 0.7)"
-            borderWidth="1px"
-            borderColor={ borderColor }
+            bg="linear-gradient(135deg, #f59e0b 0%, #f97316 100%)"
             alignItems="center"
             justifyContent="center"
           >
-            <IconSvg name="block" boxSize={ 6 } color="gray.100"/>
+            <IconSvg name="block" boxSize={ 6 } color="#111827"/>
           </Flex>
           <Box>
-            <Text fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>
+            <Text data-testid="strict-block-detail-title" fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>
               { title } <Box as="span" color="gray.400">#{ blockHeight }</Box>
             </Text>
             <Text fontSize="sm" color="text.secondary">
@@ -163,6 +161,7 @@ const StrictBlockDetailPage = ({ blockQuery, heightOrHash }: Props) => {
           )) }
         </VStack>
       </Box>
+
     </Box>
   );
 };

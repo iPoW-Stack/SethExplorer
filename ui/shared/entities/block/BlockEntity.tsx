@@ -86,7 +86,7 @@ const Container = EntityBase.Container;
 export interface EntityProps extends EntityBase.EntityBaseProps {
   number: number | string;
   hash?: string;
-  /** Shard pool index (0–32). Shown and used in link when block is identified by number. */
+  /** Global transaction pool index. Shown and used in link when block is identified by number. */
   poolIndex?: number | null;
   isPendingUpdate?: boolean;
 }

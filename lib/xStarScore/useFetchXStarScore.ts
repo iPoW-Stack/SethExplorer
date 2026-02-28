@@ -27,7 +27,7 @@ export default function useFetchXStarScore({ hash }: Params) {
       },
       enabled: Boolean(hash) && config.features.xStarScore.isEnabled,
       placeholderData: {
-        data: { level: 'Base' },
+        data: { level: null },
       },
       retry: 0,
     },

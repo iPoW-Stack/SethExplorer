@@ -2,6 +2,7 @@ import React from 'react';
 
 import { route } from 'nextjs-routes';
 
+import { formatSethPoolIndex } from 'lib/seth/poolIndex';
 import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
 import type { BlockQuery } from 'ui/block/useBlockQuery';
 
@@ -78,6 +79,10 @@ export default function useStrictBlockDetailData({ blockQuery, heightOrHash }: P
       href: block?.height !== undefined ? route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: blockHeight } }) : undefined,
       copyValue: block?.hash || undefined,
     },
+    ...(block?.pool_index !== null && block?.pool_index !== undefined ? [ {
+      label: 'Transaction Pool',
+      value: formatSethPoolIndex(block.pool_index),
+    } ] : []),
     {
       label: 'Timestamp',
       value: `${ minedAgo } (${ timestampDetail })`,
@@ -144,4 +149,3 @@ export default function useStrictBlockDetailData({ blockQuery, heightOrHash }: P
     refetch: blockQuery.refetch,
   };
 }
-

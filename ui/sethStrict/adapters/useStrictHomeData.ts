@@ -6,6 +6,7 @@ import type { Transaction } from 'types/api/transaction';
 import { route } from 'nextjs-routes';
 
 import useApiQuery from 'lib/api/useApiQuery';
+import { formatSethPoolIndexCompact } from 'lib/seth/poolIndex';
 import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
 import { BLOCK } from 'stubs/block';
 import { HOMEPAGE_STATS } from 'stubs/stats';
@@ -22,10 +23,53 @@ interface StrictHomeData {
   txs: Array<StrictHomeTxRow>;
 }
 
-function mapStats(apiData?: HomeStats): Array<StrictHomeStatCard> {
+type StrictHomeLatestBlockSnapshot = {
+  height?: number | string | null;
+  pool_index?: number | null;
+};
+
+const LIVE_STATS_FALLBACK: Array<StrictHomeStatCard> = [
+  {
+    label: 'SETH Price',
+    value: '--',
+    subtext: 'Loading...',
+    icon: 'tokens',
+    iconColor: '#10b981',
+  },
+  {
+    label: 'Market Cap',
+    value: '--',
+    subtext: 'Loading...',
+    icon: 'globe',
+    iconColor: '#10b981',
+  },
+  {
+    label: 'Transactions',
+    value: '--',
+    subtext: 'Loading...',
+    icon: 'transactions',
+    iconColor: '#f59e0b',
+  },
+  {
+    label: 'Latest Block',
+    value: '--',
+    subtext: 'Loading...',
+    icon: 'block',
+    iconColor: '#a855f7',
+  },
+];
+
+function mapStats(apiData?: HomeStats, latestBlock?: StrictHomeLatestBlockSnapshot): Array<StrictHomeStatCard> {
   if (!apiData) {
-    return HOME_STATS;
+    return LIVE_STATS_FALLBACK;
   }
+
+  const latestBlockHeight = latestBlock?.height !== null && latestBlock?.height !== undefined ?
+    String(latestBlock.height) :
+    formatIntegerWithFallback(apiData.total_blocks, HOME_STATS[3].value.replace('#', ''));
+  const latestBlockSubtext = latestBlock?.pool_index !== null && latestBlock?.pool_index !== undefined ?
+    formatSethPoolIndexCompact(latestBlock.pool_index) :
+    `${ apiData.average_block_time.toFixed(2) }s avg time`;
 
   return [
     {
@@ -51,8 +95,8 @@ function mapStats(apiData?: HomeStats): Array<StrictHomeStatCard> {
     },
     {
       label: 'Latest Block',
-      value: `#${ formatIntegerWithFallback(apiData.total_blocks, HOME_STATS[3].value.replace('#', '')) }`,
-      subtext: `${ apiData.average_block_time.toFixed(2) }s avg time`,
+      value: `#${ latestBlockHeight }`,
+      subtext: latestBlockSubtext,
       icon: 'block',
       iconColor: '#a855f7',
     },
@@ -88,38 +132,44 @@ export default function useStrictHomeData(): StrictHomeData {
   const statsQuery = useApiQuery('general:stats', {
     queryOptions: {
       enabled: !isStub,
-      placeholderData: HOMEPAGE_STATS,
+      placeholderData: isStub ? HOMEPAGE_STATS : undefined,
     },
   });
   const blocksQuery = useApiQuery('general:homepage_blocks', {
     queryOptions: {
       enabled: !isStub,
-      placeholderData: Array(4).fill(BLOCK),
+      placeholderData: isStub ? Array(4).fill(BLOCK) : undefined,
     },
   });
   const txsQuery = useApiQuery('general:homepage_txs', {
     queryOptions: {
       enabled: !isStub,
-      placeholderData: Array(4).fill(TX),
+      placeholderData: isStub ? Array(4).fill(TX) : undefined,
     },
   });
 
   const state: StrictDataState = React.useMemo(() => ({
     mode: dataSource,
-    isLoading: isStub ? false : (statsQuery.isPlaceholderData || blocksQuery.isPlaceholderData || txsQuery.isPlaceholderData),
+    isLoading: isStub ? false : (
+      statsQuery.isPlaceholderData || blocksQuery.isPlaceholderData || txsQuery.isPlaceholderData ||
+      statsQuery.isPending || blocksQuery.isPending || txsQuery.isPending
+    ),
     isError: isStub ? false : (statsQuery.isError || blocksQuery.isError || txsQuery.isError),
     errorMessage: isStub ? undefined : getErrorMessage(statsQuery.error || blocksQuery.error || txsQuery.error),
   }), [
     blocksQuery.error,
     blocksQuery.isError,
+    blocksQuery.isPending,
     blocksQuery.isPlaceholderData,
     dataSource,
     isStub,
     statsQuery.error,
     statsQuery.isError,
+    statsQuery.isPending,
     statsQuery.isPlaceholderData,
     txsQuery.error,
     txsQuery.isError,
+    txsQuery.isPending,
     txsQuery.isPlaceholderData,
   ]);
 
@@ -127,8 +177,8 @@ export default function useStrictHomeData(): StrictHomeData {
     if (isStub) {
       return HOME_STATS;
     }
-    return mapStats(statsQuery.data);
-  }, [ isStub, statsQuery.data ]);
+    return mapStats(statsQuery.data, blocksQuery.data?.[0]);
+  }, [ blocksQuery.data, isStub, statsQuery.data ]);
 
   const blocks = React.useMemo<Array<StrictHomeBlockRow>>(() => {
     if (isStub) {
@@ -142,16 +192,25 @@ export default function useStrictHomeData(): StrictHomeData {
       }));
     }
 
-    return (blocksQuery.data || []).slice(0, 4).map((item) => ({
-      id: String(item.height),
+    const blockItems = blocksQuery.isPlaceholderData ? [] : (blocksQuery.data || []).slice(0, 4);
+
+    return blockItems.map((item, index) => ({
+      id: `${ item.height ?? 'na' }-${ item.hash ?? 'na' }-${ index }`,
       block: String(item.height),
-      blockHref: route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: String(item.height) } }),
+      blockHref: route({
+        pathname: '/block/[height_or_hash]',
+        query: {
+          height_or_hash: String(item.height),
+          ...(item.pool_index !== null && item.pool_index !== undefined ? { pool_index: String(item.pool_index) } : {}),
+        },
+      }),
+      poolLabel: item.pool_index !== null && item.pool_index !== undefined ? formatSethPoolIndexCompact(item.pool_index) : undefined,
       age: formatAge(item.timestamp),
       miner: shortHash(item.miner?.name || item.miner?.hash),
       minerHref: item.miner?.hash ? route({ pathname: '/address/[hash]', query: { hash: item.miner.hash } }) : undefined,
       txns: `${ item.transactions_count } txns`,
     }));
-  }, [ isStub, blocksQuery.data ]);
+  }, [ isStub, blocksQuery.data, blocksQuery.isPlaceholderData ]);
 
   const txs = React.useMemo<Array<StrictHomeTxRow>>(() => {
     if (isStub) {
@@ -170,8 +229,10 @@ export default function useStrictHomeData(): StrictHomeData {
       });
     }
 
-    return (txsQuery.data || []).slice(0, 4).map((item) => ({
-      id: item.hash,
+    const txItems = txsQuery.isPlaceholderData ? [] : (txsQuery.data || []).slice(0, 4);
+
+    return txItems.map((item, index) => ({
+      id: `${ item.hash || 'tx' }-${ index }`,
       hash: shortHash(item.hash),
       txHref: route({ pathname: '/tx/[hash]', query: { hash: item.hash } }),
       age: formatAge(item.timestamp),
@@ -184,7 +245,7 @@ export default function useStrictHomeData(): StrictHomeData {
       value: formatWeiToEth(item.value),
       icon: mapTxMethodIcon(item),
     }));
-  }, [ isStub, txsQuery.data ]);
+  }, [ isStub, txsQuery.data, txsQuery.isPlaceholderData ]);
 
   return {
     state,
@@ -193,4 +254,3 @@ export default function useStrictHomeData(): StrictHomeData {
     txs,
   };
 }
-

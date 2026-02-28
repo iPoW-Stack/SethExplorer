@@ -1,9 +1,9 @@
 # Seth Strict Design Audit
 
 ## 1. Scope
-- generated_at: `2026-02-13T22:09:43.825Z`
+- generated_at: `2026-02-27T22:48:01.402Z`
 - design_base: `http://34.126.98.218:8082/`
-- runtime_base: `http://localhost:8096`
+- runtime_base: `https://explorer.seth.app`
 - thresholds: desktop >= 97, mobile >= 96, loading_blocked=false
 
 ## 2. Summary
@@ -23,21 +23,21 @@
 ## 4. Metrics
 | Page | Desktop Score | Desktop changed_ratio | Mobile Score | Mobile changed_ratio | Final URL |
 |---|---:|---:|---:|---:|---|
-| home | 95.26 | 8.30% | 97.87 | 3.27% | http://localhost:8096/ |
-| blocks | 96.36 | 6.75% | 98.34 | 2.58% | http://localhost:8096/blocks |
-| txs | 96.27 | 6.82% | 98.29 | 2.66% | http://localhost:8096/txs |
-| block | 96.05 | 6.51% | 97.98 | 3.07% | http://localhost:8096/block/18249102 |
-| tx | 96.13 | 6.36% | 98.16 | 2.57% | http://localhost:8096/tx/0x39a1c4b2e5d8f9a0c1b3d4e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6 |
-| address | 95.65 | 7.32% | 98.09 | 2.80% | http://localhost:8096/address/0x1234567890abcdef1234567890abcdef12345678 |
+| home | 94.99 | 8.11% | 97.74 | 3.31% | https://explorer.seth.app/ |
+| blocks | 96 | 6.78% | 96.96 | 4.74% | https://explorer.seth.app/blocks |
+| txs | 95.37 | 8.09% | 96.15 | 7.02% | https://explorer.seth.app/txs |
+| block | 95.93 | 6.43% | 97.9 | 3.05% | https://explorer.seth.app/block/32213 |
+| tx | 95.6 | 6.85% | 98 | 2.78% | https://explorer.seth.app/tx/0x00000000000000000000000000000000000000000000000000007dd500000000 |
+| address | 94.68 | 8.61% | 96.02 | 6.68% | https://explorer.seth.app/address/0xf0d8b50b0C0b6B976b65b1CBAb6FF20E0A0C8401 |
 
 ## 5. Priority Buckets
 ### P0
-- Home `/`: score below threshold (desktop=95.26, mobile=97.87)
-- Blocks `/blocks`: score below threshold (desktop=96.36, mobile=98.34)
-- Transactions `/txs`: score below threshold (desktop=96.27, mobile=98.29)
-- Block `/block/[id]`: score below threshold (desktop=96.05, mobile=97.98)
-- Tx `/tx/[hash]`: score below threshold (desktop=96.13, mobile=98.16)
-- Address `/address/[hash]`: score below threshold (desktop=95.65, mobile=98.09)
+- Home `/`: score below threshold (desktop=94.99, mobile=97.74)
+- Blocks `/blocks`: score below threshold (desktop=96, mobile=96.96)
+- Transactions `/txs`: score below threshold (desktop=95.37, mobile=96.15)
+- Block `/block/[id]`: score below threshold (desktop=95.93, mobile=97.9)
+- Tx `/tx/[hash]`: score below threshold (desktop=95.6, mobile=98)
+- Address `/address/[hash]`: score below threshold (desktop=94.68, mobile=96.02)
 
 ### P1
 - none
@@ -48,12 +48,12 @@
 ## 6. Runtime Routes
 ```json
 {
-  "home": "http://localhost:8096/",
-  "blocks": "http://localhost:8096/blocks",
-  "txs": "http://localhost:8096/txs",
-  "block": "http://localhost:8096/block/18249102",
-  "tx": "http://localhost:8096/tx/0x39a1c4b2e5d8f9a0c1b3d4e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6",
-  "address": "http://localhost:8096/address/0x1234567890abcdef1234567890abcdef12345678"
+  "home": "https://explorer.seth.app/",
+  "blocks": "https://explorer.seth.app/blocks",
+  "txs": "https://explorer.seth.app/txs",
+  "block": "https://explorer.seth.app/block/32213",
+  "tx": "https://explorer.seth.app/tx/0x00000000000000000000000000000000000000000000000000007dd500000000",
+  "address": "https://explorer.seth.app/address/0xf0d8b50b0C0b6B976b65b1CBAb6FF20E0A0C8401"
 }
 ```
 

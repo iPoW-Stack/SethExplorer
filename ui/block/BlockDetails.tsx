@@ -14,6 +14,7 @@ import { useMultichainContext } from 'lib/contexts/multichain';
 import getNetworkValidatorTitle from 'lib/networks/getNetworkValidatorTitle';
 import * as arbitrum from 'lib/rollups/arbitrum';
 import getQueryParamString from 'lib/router/getQueryParamString';
+import { formatSethPoolIndex, getSethPoolIndexHint } from 'lib/seth/poolIndex';
 import { CollapsibleDetails } from 'toolkit/chakra/collapsible';
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
@@ -48,7 +49,7 @@ import type { BlockQuery } from './useBlockQuery';
 
 interface Props {
   query: BlockQuery;
-  /** Shard pool index from URL (0–32). Preserved in prev/next and tab links. */
+  /** Global pool index from URL. Preserved in prev/next and tab links. */
   poolIndex?: number | null;
 }
 
@@ -186,13 +187,13 @@ const BlockDetails = ({ query, poolIndex }: Props) => {
       { (data.pool_index != null) && (
         <>
           <DetailedInfo.ItemLabel
-            hint="Transaction pool index on sharded chains. Identifies the block when multiple blocks share the same height (0–32)."
+            hint={ getSethPoolIndexHint(data.pool_index) }
             isLoading={ isPlaceholderData }
           >
-            Transaction pool index
+            Transaction pool
           </DetailedInfo.ItemLabel>
           <DetailedInfo.ItemValue>
-            <Skeleton loading={ isPlaceholderData }>{ data.pool_index }</Skeleton>
+            <Skeleton loading={ isPlaceholderData }>{ formatSethPoolIndex(data.pool_index) }</Skeleton>
           </DetailedInfo.ItemValue>
         </>
       ) }

@@ -1,17 +1,18 @@
 import { Box, Flex, Grid, Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 import { FaFileLines, FaLayerGroup, FaRightLeft } from 'react-icons/fa6';
+import { FaBolt, FaCubes, FaEthereum, FaGlobe } from 'react-icons/fa';
 
 import { route } from 'nextjs-routes';
 
 import { Button } from 'toolkit/chakra/button';
 import { Link } from 'toolkit/chakra/link';
-import IconSvg from 'ui/shared/IconSvg';
 
 import useStrictHomeData from './adapters/useStrictHomeData';
 
 const cardBorderColor = 'rgba(255, 255, 255, 0.06)';
 const rowBorderColor = 'rgba(255, 255, 255, 0.08)';
+const secondaryLinkColor = 'rgba(74, 222, 128, 0.82)';
 
 const StrictHome = () => {
   const { state, stats, blocks, txs } = useStrictHomeData();
@@ -25,6 +26,19 @@ const StrictHome = () => {
       case 'file':
       default:
         return <FaFileLines size={ 13 }/>;
+    }
+  };
+
+  const getStatIcon = (label: string, color: string) => {
+    switch (label) {
+      case 'SETH Price':
+        return <FaEthereum size={ 50 } color={ color }/>;
+      case 'Market Cap':
+        return <FaGlobe size={ 50 } color={ color }/>;
+      case 'Transactions':
+        return <FaBolt size={ 50 } color={ color }/>;
+      default:
+        return <FaCubes size={ 50 } color={ color }/>;
     }
   };
 
@@ -63,15 +77,9 @@ const StrictHome = () => {
             position="relative"
             overflow="hidden"
           >
-            <IconSvg
-              name={ card.icon }
-              boxSize="48px"
-              position="absolute"
-              top={ 3 }
-              right={ 3 }
-              color={ card.iconColor }
-              opacity={ 0.2 }
-            />
+            <Box position="absolute" top={ 3 } right={ 3 } opacity={ 0.16 }>
+              { getStatIcon(card.label, card.iconColor) }
+            </Box>
             <Text fontSize="sm" color="text.secondary" mb={ 1 }>
               { card.label }
             </Text>
@@ -122,13 +130,16 @@ const StrictHome = () => {
                 </Flex>
                 <Box flex={ 1 } minW={ 0 }>
                   <Flex alignItems="center" justifyContent="space-between" mb={ 1 }>
-                    <Link noIcon href={ item.blockHref } color="seth.primary" fontWeight={ 700 }>{ item.block }</Link>
+                    <Box>
+                      <Link noIcon href={ item.blockHref } color="seth.primary" fontWeight={ 600 }>{ item.block }</Link>
+                      { item.poolLabel && <Text mt={ 0.5 } fontSize="xs" color="gray.400">{ item.poolLabel }</Text> }
+                    </Box>
                     <Text color="text.secondary" fontSize="xs">{ item.age }</Text>
                   </Flex>
                   <Flex alignItems="center" justifyContent="space-between">
                     <Text fontSize="sm" color="text.secondary">
                       Miner{ ' ' }
-                      { item.minerHref ? <Link href={ item.minerHref } noIcon color="seth.primary">{ item.miner }</Link> : <Box as="span" color="seth.primary">{ item.miner }</Box> }
+                      { item.minerHref ? <Link href={ item.minerHref } noIcon color={ secondaryLinkColor }>{ item.miner }</Link> : <Box as="span" color={ secondaryLinkColor }>{ item.miner }</Box> }
                     </Text>
                     <Text
                       fontSize="xs"
@@ -145,6 +156,11 @@ const StrictHome = () => {
                 </Box>
               </Flex>
             )) }
+            { blocks.length === 0 && (
+              <Flex px={ 4 } py={ 4 }>
+                <Text fontSize="sm" color="text.secondary">{ state.isLoading ? 'Loading latest blocks...' : 'No block data available' }</Text>
+              </Flex>
+            ) }
           </VStack>
         </Box>
 
@@ -183,15 +199,15 @@ const StrictHome = () => {
                 </Flex>
                 <Box flex={ 1 } minW={ 0 }>
                   <Flex alignItems="center" justifyContent="space-between" mb={ 1 }>
-                    <Link noIcon href={ item.txHref } color="seth.primary" fontWeight={ 700 }>{ item.hash }</Link>
+                    <Link noIcon href={ item.txHref } color="seth.primary" fontWeight={ 600 } fontFamily="mono">{ item.hash }</Link>
                     <Text color="text.secondary" fontSize="xs">{ item.age }</Text>
                   </Flex>
                   <Flex alignItems="center" justifyContent="space-between">
                     <Text fontSize="sm" color="text.secondary">
                       From{ ' ' }
-                      { item.fromHref ? <Link noIcon href={ item.fromHref } color="seth.primary">{ item.from }</Link> : <Box as="span" color="seth.primary">{ item.from }</Box> }
+                      { item.fromHref ? <Link noIcon href={ item.fromHref } color={ secondaryLinkColor }>{ item.from }</Link> : <Box as="span" color={ secondaryLinkColor }>{ item.from }</Box> }
                       { ' -> ' }
-                      { item.toHref ? <Link noIcon href={ item.toHref } color="seth.primary">{ item.to }</Link> : <Box as="span" color="seth.primary">{ item.to }</Box> }
+                      { item.toHref ? <Link noIcon href={ item.toHref } color={ secondaryLinkColor }>{ item.to }</Link> : <Box as="span" color={ secondaryLinkColor }>{ item.to }</Box> }
                     </Text>
                     <Text
                       fontSize="xs"
@@ -208,6 +224,11 @@ const StrictHome = () => {
                 </Box>
               </Flex>
             )) }
+            { txs.length === 0 && (
+              <Flex px={ 4 } py={ 4 }>
+                <Text fontSize="sm" color="text.secondary">{ state.isLoading ? 'Loading latest transactions...' : 'No transaction data available' }</Text>
+              </Flex>
+            ) }
           </VStack>
         </Box>
       </Grid>

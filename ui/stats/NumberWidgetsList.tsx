@@ -6,15 +6,30 @@ import { STATS_COUNTER } from 'stubs/stats';
 import StatsWidget from 'ui/shared/stats/StatsWidget';
 
 import DataFetchAlert from '../shared/DataFetchAlert';
+import { mapHomeStatsToCounters } from './fallbackCharts';
 
 const UNITS_WITHOUT_SPACE = [ 's' ];
 
 const NumberWidgetsList = () => {
-  const { data, isPlaceholderData, isError } = useApiQuery('stats:counters', {
+  const countersQuery = useApiQuery('stats:counters', {
     queryOptions: {
       placeholderData: { counters: Array(10).fill(STATS_COUNTER) },
     },
   });
+  const fallbackStatsQuery = useApiQuery('general:stats', {
+    queryOptions: {
+      enabled: countersQuery.isError,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  });
+
+  const fallbackCounters = mapHomeStatsToCounters(fallbackStatsQuery.data);
+  const isFallbackMode = countersQuery.isError && Boolean(fallbackCounters);
+  const data = isFallbackMode ? fallbackCounters : countersQuery.data;
+  const isPlaceholderData = countersQuery.isPlaceholderData || (countersQuery.isError && fallbackStatsQuery.isPlaceholderData);
+  const isError = countersQuery.isError && !isFallbackMode && fallbackStatsQuery.isError;
 
   if (isError) {
     return <DataFetchAlert/>;

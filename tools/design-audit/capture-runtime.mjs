@@ -18,6 +18,9 @@ const RUNTIME_META_PATH = path.join(OUTPUT_DIR, 'runtime-capture-meta.json');
 const GOTO_TIMEOUT_MS = Number(process.env.AUDIT_GOTO_TIMEOUT_MS || 45_000);
 const SCREENSHOT_TIMEOUT_MS = Number(process.env.AUDIT_SCREENSHOT_TIMEOUT_MS || 30_000);
 const GOTO_RETRIES = Number(process.env.AUDIT_GOTO_RETRIES || 2);
+const CAPTURE_ATTEMPTS = Number(process.env.AUDIT_CAPTURE_ATTEMPTS || 4);
+const SERVER_STARTUP_TIMEOUT_MS = Number(process.env.AUDIT_SERVER_STARTUP_TIMEOUT_MS || 300_000);
+const SERVER_PING_TIMEOUT_MS = Number(process.env.AUDIT_SERVER_PING_TIMEOUT_MS || 30_000);
 const STABLE_DIFF_THRESHOLD = Number(process.env.AUDIT_STABLE_DIFF_THRESHOLD || 0.003);
 const STABLE_TIMEOUT_MS = Number(process.env.AUDIT_STABLE_TIMEOUT_MS || 12_000);
 const STABLE_MIN_INTERVAL_MS = Number(process.env.AUDIT_STABLE_MIN_INTERVAL_MS || 500);
@@ -50,6 +53,15 @@ const CRITICAL_TEXT_PATTERNS = {
   address: /Address/i,
 };
 
+const CRITICAL_SELECTORS = {
+  home: '[data-testid="strict-home-view-all-blocks"]',
+  blocks: '[data-testid="strict-blocks-page-label"]',
+  txs: '[data-testid="strict-txs-page-label"]',
+  block: '[data-testid="strict-block-detail-title"]',
+  tx: '[data-testid="strict-tx-detail-title"]',
+  address: '[data-testid="strict-address-title"]',
+};
+
 async function ensureDir() {
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
 }
@@ -80,6 +92,149 @@ function normalizeUrl(base, targetPathOrUrl) {
     return targetPathOrUrl;
   }
   return new URL(targetPathOrUrl, base).toString();
+}
+
+function isHexAddress(value) {
+  return typeof value === 'string' && /^0x[a-f0-9]{40}$/i.test(value);
+}
+
+function isHexTxHash(value) {
+  return typeof value === 'string' && /^0x[a-f0-9]{64}$/i.test(value);
+}
+
+function normalizeAddressCandidate(value) {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!isHexAddress(trimmed)) {
+    return null;
+  }
+  return trimmed;
+}
+
+function pickAddressFromTxItem(item) {
+  const candidates = [
+    item?.from?.hash,
+    item?.from?.address,
+    item?.from?.value,
+    item?.to?.hash,
+    item?.to?.address,
+    item?.to?.value,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeAddressCandidate(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function pickAddressFromBlockItem(item) {
+  const candidates = [
+    item?.miner?.hash,
+    item?.miner?.address,
+    item?.miner?.value,
+    item?.proposer?.hash,
+    item?.proposer?.address,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeAddressCandidate(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function toJsonArray(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  if (Array.isArray(payload?.items)) {
+    return payload.items;
+  }
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+
+  return [];
+}
+
+async function fetchJson(baseUrl, endpoint) {
+  const url = new URL(endpoint, baseUrl).toString();
+  const response = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow',
+    signal: AbortSignal.timeout(GOTO_TIMEOUT_MS),
+    headers: { accept: 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${ response.status } for ${ endpoint }`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Unexpected content-type for ${ endpoint }: ${ contentType || 'unknown' }`);
+  }
+
+  return response.json();
+}
+
+async function resolveDynamicDetailRoutes(baseUrl) {
+  const resolved = {};
+  let blocks = [];
+  let txs = [];
+
+  try {
+    const blocksPayload = await fetchJson(baseUrl, '/api/v2/main-page/blocks');
+    blocks = toJsonArray(blocksPayload);
+  } catch (error) {
+    void error;
+  }
+
+  try {
+    const txsPayload = await fetchJson(baseUrl, '/api/v2/main-page/transactions');
+    txs = toJsonArray(txsPayload);
+  } catch (error) {
+    void error;
+  }
+
+  if (blocks.length > 0) {
+    const height = blocks[0]?.height;
+    if (height !== undefined && `${ height }`.trim() !== '') {
+      resolved.block = `/block/${ height }`;
+    }
+  }
+
+  if (txs.length > 0) {
+    const txHash = txs[0]?.hash;
+    if (isHexTxHash(txHash)) {
+      resolved.tx = `/tx/${ txHash }`;
+    }
+  }
+
+  if (txs.length > 0) {
+    const txAddress = pickAddressFromTxItem(txs[0]);
+    if (txAddress) {
+      resolved.address = `/address/${ txAddress }`;
+    }
+  }
+
+  if (!resolved.address && blocks.length > 0) {
+    const blockAddress = pickAddressFromBlockItem(blocks[0]);
+    if (blockAddress) {
+      resolved.address = `/address/${ blockAddress }`;
+    }
+  }
+
+  return resolved;
 }
 
 function sanitizeRoutes(defaultRoutes, existingRoutes) {
@@ -168,6 +323,14 @@ async function waitForContentReady(page) {
 }
 
 async function hasCriticalContent(page, pageKey) {
+  const selector = CRITICAL_SELECTORS[pageKey];
+  if (selector) {
+    const hasSelector = await page.locator(selector).first().isVisible().catch(() => false);
+    if (hasSelector) {
+      return true;
+    }
+  }
+
   const pattern = CRITICAL_TEXT_PATTERNS[pageKey];
   if (!pattern) {
     return true;
@@ -244,9 +407,11 @@ async function waitForStableViewport(page, pageKey) {
   const start = Date.now();
 
   let previousShot = await page.screenshot({ fullPage: false, timeout: SCREENSHOT_TIMEOUT_MS });
+  let sawCriticalContent = false;
 
   while (Date.now() - start < STABLE_TIMEOUT_MS) {
     const hasCritical = await hasCriticalContent(page, pageKey);
+    sawCriticalContent = sawCriticalContent || hasCritical;
     const visibleSkeleton = await countVisibleSkeleton(page);
 
     await page.waitForTimeout(STABLE_MIN_INTERVAL_MS);
@@ -259,6 +424,10 @@ async function waitForStableViewport(page, pageKey) {
     }
 
     previousShot = currentShot;
+  }
+
+  if (!sawCriticalContent) {
+    throw new Error(`Critical content not ready for page "${ pageKey }"`);
   }
 }
 
@@ -288,12 +457,96 @@ async function warmupRoutes(routes) {
   }
 }
 
+async function captureRouteWithRetries(page, pageKey, initialUrl) {
+  let lastFinalUrl = initialUrl;
+  let lastFinalStatus = 0;
+  let lastFinalContentType = '';
+  let lastUsedFallback = false;
+  let lastError;
+
+  for (let attempt = 1; attempt <= CAPTURE_ATTEMPTS; attempt += 1) {
+    let finalUrl = initialUrl;
+    let finalStatus = 0;
+    let finalContentType = '';
+    let usedFallback = false;
+
+    try {
+      const firstVisit = await gotoUrl(page, initialUrl);
+      finalStatus = firstVisit.status;
+      finalContentType = firstVisit.contentType;
+      finalUrl = page.url();
+      let runtimeErrorVisible = await hasRuntimeErrorOverlay(page);
+
+      if (
+        DETAIL_PAGE_KEYS.has(pageKey) &&
+        (isNotFoundPage(finalStatus, finalUrl) || isCountdownPage(pageKey, finalUrl) || runtimeErrorVisible)
+      ) {
+        const fallbackUrl = await resolveFallbackRoute(page, pageKey);
+        if (fallbackUrl) {
+          const fallbackVisit = await gotoUrl(page, fallbackUrl);
+          finalStatus = fallbackVisit.status;
+          finalContentType = fallbackVisit.contentType;
+          finalUrl = page.url();
+          usedFallback = true;
+          runtimeErrorVisible = await hasRuntimeErrorOverlay(page);
+        }
+      }
+
+      const looksLikeNonHtml = finalContentType.includes('application/json') || finalContentType.includes('text/plain');
+      const hasHttpError = finalStatus >= 400;
+
+      if (hasHttpError || looksLikeNonHtml || runtimeErrorVisible) {
+        let reason = 'runtime error overlay detected';
+        if (hasHttpError) {
+          reason = `HTTP ${ finalStatus }`;
+        } else if (looksLikeNonHtml) {
+          reason = `unexpected content-type: ${ finalContentType || 'unknown' }`;
+        }
+        throw new Error(`Runtime route is not capturable (${ reason })`);
+      }
+
+      await waitForContentReady(page);
+      const loadingBlocked = await isLoadingBlocked(page);
+      if (!loadingBlocked) {
+        await waitForStableViewport(page, pageKey);
+      }
+
+      return {
+        loadingBlocked,
+        usedFallback,
+        finalUrl,
+        finalStatus,
+        finalContentType,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+      lastFinalUrl = finalUrl;
+      lastFinalStatus = finalStatus;
+      lastFinalContentType = finalContentType;
+      lastUsedFallback = usedFallback;
+
+      if (attempt < CAPTURE_ATTEMPTS) {
+        await page.waitForTimeout(2_000);
+      }
+    }
+  }
+
+  return {
+    loadingBlocked: true,
+    usedFallback: lastUsedFallback,
+    finalUrl: lastFinalUrl,
+    finalStatus: lastFinalStatus,
+    finalContentType: lastFinalContentType,
+    captureError: lastError || 'Unknown capture error',
+  };
+}
+
 async function run() {
   await ensureDir();
 
   const defaultRoutes = await readJsonSafe(path.join(FIXTURES_DIR, 'runtime-routes.default.json'));
   const existingRoutes = await readJsonSafe(RUNTIME_ROUTES_PATH);
-  const routes = sanitizeRoutes(defaultRoutes, existingRoutes);
+  let routes = sanitizeRoutes(defaultRoutes, existingRoutes);
 
   const runtimeCaptureMeta = {};
   const resolvedRoutes = {};
@@ -301,6 +554,8 @@ async function run() {
   const runtimeServer = await ensureRuntimeServer({
     baseUrl: runtimeBaseUrl,
     strictMode: true,
+    startupTimeoutMs: SERVER_STARTUP_TIMEOUT_MS,
+    pingTimeoutMs: SERVER_PING_TIMEOUT_MS,
   });
   runtimeBaseUrl = runtimeServer.baseUrl;
 
@@ -310,6 +565,16 @@ async function run() {
   } else if (runtimeBaseUrl !== requestedRuntimeBaseUrl) {
     // eslint-disable-next-line no-console
     console.log(`[runtime] reusing existing runtime server at ${ runtimeBaseUrl }`);
+  }
+
+  const dynamicDetailRoutes = await resolveDynamicDetailRoutes(runtimeBaseUrl);
+  routes = {
+    ...routes,
+    ...dynamicDetailRoutes,
+  };
+  if (Object.keys(dynamicDetailRoutes).length > 0) {
+    // eslint-disable-next-line no-console
+    console.log(`[runtime] dynamic detail routes resolved: ${ JSON.stringify(dynamicDetailRoutes) }`);
   }
 
   await warmupRoutes(routes);
@@ -330,70 +595,20 @@ async function run() {
           page.setDefaultNavigationTimeout(GOTO_TIMEOUT_MS);
           page.setDefaultTimeout(GOTO_TIMEOUT_MS);
           const initialUrl = normalizeUrl(runtimeBaseUrl, routePathOrUrl);
-          let finalUrl = initialUrl;
-          let finalStatus = 0;
-          let finalContentType = '';
-          let usedFallback = false;
-          let loadingBlocked = true;
-          let captureError;
+          const captureResult = await captureRouteWithRetries(page, pageKey, initialUrl);
+          const loadingBlocked = captureResult.loadingBlocked;
+          const usedFallback = captureResult.usedFallback;
+          const finalUrl = captureResult.finalUrl;
+          const finalStatus = captureResult.finalStatus;
+          const finalContentType = captureResult.finalContentType;
+          const captureError = captureResult.captureError;
 
-          try {
-            const firstVisit = await gotoUrl(page, initialUrl);
-            finalStatus = firstVisit.status;
-            finalContentType = firstVisit.contentType;
-            finalUrl = page.url();
-            let runtimeErrorVisible = await hasRuntimeErrorOverlay(page);
-
-            if (
-              DETAIL_PAGE_KEYS.has(pageKey) &&
-              (isNotFoundPage(finalStatus, finalUrl) || isCountdownPage(pageKey, finalUrl) || runtimeErrorVisible)
-            ) {
-              const fallbackUrl = await resolveFallbackRoute(page, pageKey);
-              if (fallbackUrl) {
-                const fallbackVisit = await gotoUrl(page, fallbackUrl);
-                finalStatus = fallbackVisit.status;
-                finalContentType = fallbackVisit.contentType;
-                finalUrl = page.url();
-                usedFallback = true;
-                runtimeErrorVisible = await hasRuntimeErrorOverlay(page);
-              }
-            }
-
-            const looksLikeNonHtml = finalContentType.includes('application/json') || finalContentType.includes('text/plain');
-            const hasHttpError = finalStatus >= 400;
-
-            if (hasHttpError || looksLikeNonHtml || runtimeErrorVisible) {
-              let reason = 'runtime error overlay detected';
-              if (hasHttpError) {
-                reason = `HTTP ${ finalStatus }`;
-              } else if (looksLikeNonHtml) {
-                reason = `unexpected content-type: ${ finalContentType || 'unknown' }`;
-              }
-              captureError = `Runtime route is not capturable (${ reason })`;
-              loadingBlocked = true;
-              await page.setContent(
-                `<html><body style="background:#040608;color:#fff;font-family:Inter,sans-serif;padding:24px">
-                  <h1>Runtime capture blocked</h1>
-                  <p>${ captureError }</p>
-                  <p>url: ${ finalUrl }</p>
-                </body></html>`,
-                { waitUntil: 'domcontentloaded', timeout: 5_000 },
-              ).catch(() => null);
-            } else {
-              await waitForContentReady(page);
-              loadingBlocked = await isLoadingBlocked(page);
-
-              if (!loadingBlocked) {
-                await waitForStableViewport(page, pageKey).catch(() => null);
-              }
-            }
-          } catch (error) {
-            captureError = error instanceof Error ? error.message : String(error);
+          if (captureError) {
             await page.setContent(
               `<html><body style="background:#040608;color:#fff;font-family:Inter,sans-serif;padding:24px">
                 <h1>Runtime capture blocked</h1>
                 <p>${ captureError }</p>
-                <p>url: ${ initialUrl }</p>
+                <p>url: ${ finalUrl || initialUrl }</p>
               </body></html>`,
               { waitUntil: 'domcontentloaded', timeout: 5_000 },
             ).catch(() => null);

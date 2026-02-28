@@ -45,7 +45,7 @@ const StatsFilters = ({
 
   return (
     <Grid
-      gap={{ base: 2, lg: 6 }}
+      gap={{ base: 2, lg: 5 }}
       templateAreas={{
         base: `"section interval"
                 "input input"`,
@@ -53,6 +53,7 @@ const StatsFilters = ({
       }}
       gridTemplateColumns={{ base: 'repeat(2, minmax(0, 1fr))', lg: 'auto auto 1fr' }}
       alignItems="center"
+      className="seth-page-shell"
     >
       <GridItem
         w={{ base: '100%', lg: 'auto' }}
@@ -63,7 +64,7 @@ const StatsFilters = ({
           placeholder="Select section"
           defaultValue={ [ currentSection ] }
           onValueChange={ handleItemSelect }
-          w={{ base: '100%', lg: '136px' }}
+          w={{ base: '100%', lg: '170px' }}
           loading={ isLoading }
         />
       </GridItem>
@@ -86,6 +87,7 @@ const StatsFilters = ({
           placeholder="Find chart, metric..."
           initialValue={ initialFilterValue }
           size="sm"
+          borderRadius="md"
         />
       </GridItem>
     </Grid>

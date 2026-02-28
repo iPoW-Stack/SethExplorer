@@ -22,6 +22,7 @@ export interface StrictHomeBlockRow {
   id: string;
   block: string;
   blockHref: string;
+  poolLabel?: string;
   age: string;
   miner: string;
   minerHref?: string;
@@ -45,6 +46,7 @@ export interface StrictBlocksRow {
   id: string;
   block: string;
   blockHref: string;
+  poolLabel?: string;
   age: string;
   txns: string;
   miner: string;

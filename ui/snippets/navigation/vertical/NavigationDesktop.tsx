@@ -1,8 +1,8 @@
-import { Box, Flex, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex, HStack, Text, VStack } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
-import type { NavItem } from 'types/client/navigation';
+import type { NavItem, NavItemInternal } from 'types/client/navigation';
 
 import { route } from 'nextjs-routes';
 
@@ -20,6 +20,7 @@ import NetworkLogo from 'ui/snippets/networkLogo/NetworkLogo';
 import NavigationPromoBanner from '../promoBanner/NavigationPromoBanner';
 import RollupStageBadge from '../RollupStageBadge';
 import TestnetBadge from '../TestnetBadge';
+import NavLinkIcon from '../NavLinkIcon';
 import NavLink from './NavLink';
 import NavLinkGroup from './NavLinkGroup';
 import NavLinkRewards from './NavLinkRewards';
@@ -31,7 +32,7 @@ function isAccountsRoute(pathname: string) {
 }
 
 function getSethStrictItems(pathname: string) {
-  const menuItems: Array<NavItem> = [
+  const menuItems: Array<NavItemInternal> = [
     {
       text: 'Dashboard',
       nextRoute: { pathname: '/' as const },
@@ -64,7 +65,7 @@ function getSethStrictItems(pathname: string) {
     },
   ];
 
-  const resourcesItems: Array<NavItem> = [
+  const resourcesItems: Array<NavItemInternal> = [
     {
       text: 'Charts',
       nextRoute: { pathname: '/stats' as const },
@@ -81,6 +82,39 @@ function getSethStrictItems(pathname: string) {
 
   return { menuItems, resourcesItems };
 }
+
+const StrictNavItem = ({ item }: { item: NavItemInternal }) => {
+  return (
+    <Box as="li" listStyleType="none" w="100%">
+      <Link
+        href={ route(item.nextRoute) }
+        noIcon
+        w="100%"
+        fontSize="14px"
+        lineHeight="20px"
+        fontWeight={ 500 }
+        px={ 4 }
+        py={ 3 }
+        borderRadius="8px"
+        borderWidth="1px"
+        borderColor={ item.isActive ? 'rgba(0, 255, 163, 0.22)' : 'transparent' }
+        bgColor={ item.isActive ? 'rgba(0, 255, 163, 0.1)' : 'transparent' }
+        boxShadow={ item.isActive ? '0 0 15px rgba(0, 255, 163, 0.1)' : 'none' }
+        color={ item.isActive ? 'seth.primary' : 'gray.400' }
+        _hover={{
+          color: item.isActive ? 'seth.primary' : 'white',
+          bgColor: item.isActive ? 'rgba(0, 255, 163, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+          borderColor: item.isActive ? 'rgba(0, 255, 163, 0.22)' : 'rgba(255, 255, 255, 0.08)',
+        }}
+      >
+        <HStack gap={ 3 } alignItems="center">
+          <NavLinkIcon item={ item }/>
+          <Text fontSize="14px" lineHeight="20px" fontWeight={ 500 }>{ item.text }</Text>
+        </HStack>
+      </Link>
+    </Box>
+  );
+};
 
 const NavigationDesktop = () => {
   const appProps = useAppContext();
@@ -199,8 +233,14 @@ const NavigationDesktop = () => {
             <Text
               fontSize="xl"
               fontWeight={ 700 }
-              color="white"
+              textShadow="0 0 8px rgba(0, 255, 163, 0.28)"
               letterSpacing="0.2px"
+              style={{
+                background: 'linear-gradient(90deg, #ffffff 0%, #d1fae5 52%, #34d399 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
             >
               SETH
             </Text>
@@ -217,20 +257,39 @@ const NavigationDesktop = () => {
 
       { isSethStrict ? (
         <Box as="nav" mt={ 6 } px={ 3 } w="100%" display="flex" flexDirection="column" flexGrow={ 1 }>
-          <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider" px={ 4 } mb={ 2 }>
+          <Text
+            fontSize="xs"
+            lineHeight="16px"
+            color="gray.500"
+            textTransform="uppercase"
+            letterSpacing="wider"
+            fontWeight={ 600 }
+            px={ 4 }
+            mb={ 2 }
+          >
             Menu
           </Text>
           <VStack as="ul" gap="1" alignItems="flex-start" mb={ 6 }>
-            { strictItems.menuItems.map((item) => <NavLink key={ item.text } item={ item } isCollapsed={ false }/>) }
+            { strictItems.menuItems.map((item) => <StrictNavItem key={ item.text } item={ item }/>) }
           </VStack>
 
           { showStrictResources && (
             <>
-              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider" px={ 4 } mb={ 2 } mt={ 4 }>
+              <Text
+                fontSize="xs"
+                lineHeight="16px"
+                color="gray.500"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                fontWeight={ 600 }
+                px={ 4 }
+                mb={ 2 }
+                mt={ 4 }
+              >
                 Resources
               </Text>
               <VStack as="ul" gap="1" alignItems="flex-start">
-                { strictItems.resourcesItems.map((item) => <NavLink key={ item.text } item={ item } isCollapsed={ false }/>) }
+                { strictItems.resourcesItems.map((item) => <StrictNavItem key={ item.text } item={ item }/>) }
               </VStack>
             </>
           ) }

@@ -60,14 +60,14 @@ const globalCss: SystemConfig['globalCss'] = {
   'html.dark .seth-panel': {
     background: 'rgba(10, 16, 20, 0.6)',
     border: '1px solid rgba(255, 255, 255, 0.05)',
-    borderRadius: '12px',
+    borderRadius: '0px',
     backdropFilter: 'blur(12px)',
     boxShadow: '0 0 0 1px rgba(0, 255, 163, 0.02), 0 8px 30px rgba(0, 0, 0, 0.4)',
   },
   'html.dark .seth-panel-soft': {
     background: 'rgba(10, 16, 20, 0.58)',
     border: '1px solid rgba(255, 255, 255, 0.05)',
-    borderRadius: '12px',
+    borderRadius: '0px',
     backdropFilter: 'blur(10px)',
   },
   'html.dark .seth-panel-hover': {

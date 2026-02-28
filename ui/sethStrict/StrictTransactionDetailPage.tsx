@@ -129,7 +129,7 @@ const StrictTransactionDetailPage = ({ txQuery, hash }: Props) => {
       ) }
 
       <Box borderBottomWidth="1px" borderBottomColor="seth.border" pb={ 4 } mb={ 5 }>
-        <Text fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>{ title }</Text>
+        <Text data-testid="strict-tx-detail-title" fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>{ title }</Text>
       </Box>
 
       <Box className="seth-panel seth-panel-hover" borderWidth="1px" borderColor={ borderColor } overflow="hidden">

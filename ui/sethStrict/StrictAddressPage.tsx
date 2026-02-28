@@ -13,6 +13,7 @@ import IconSvg from 'ui/shared/IconSvg';
 import useStrictAddressData from './adapters/useStrictAddressData';
 
 const borderColor = 'rgba(255, 255, 255, 0.08)';
+const secondaryLinkColor = 'rgba(74, 222, 128, 0.82)';
 
 interface Props {
   hash: string;
@@ -58,7 +59,7 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
           <Flex
             boxSize="48px"
             borderRadius="xl"
-            bgGradient="linear(to-br, #00ffa3, #059669)"
+            bg="linear-gradient(135deg, #00ffa3 0%, #059669 100%)"
             alignItems="center"
             justifyContent="center"
             color="#041018"
@@ -66,7 +67,7 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
             <FaUser size={ 18 }/>
           </Flex>
           <Flex alignItems="center" gap={ 2 } flexWrap="wrap">
-            <Text fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>
+            <Text data-testid="strict-address-title" fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>
               Address <Box as="span" color="gray.400" fontFamily="mono" fontSize="lg">{ titleHash }</Box>
             </Text>
             { rawHash && <CopyToClipboard text={ rawHash } boxSize={ 5 } ml={ 0 }/> }
@@ -112,17 +113,20 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
 
       <HStack gap={ 0 } px={ 0 } mb={ 6 } borderBottomWidth="1px" borderBottomColor={ borderColor }>
         <Text px={ 4 } py={ 2 } color="seth.primary" fontWeight={ 500 } fontSize="sm" borderBottomWidth="2px" borderBottomColor="seth.primary">Transactions</Text>
+        <Text px={ 4 } py={ 2 } color="gray.400" fontWeight={ 500 } fontSize="sm">Internal Txs</Text>
+        <Text px={ 4 } py={ 2 } color="gray.400" fontWeight={ 500 } fontSize="sm">Token Transfers</Text>
+        <Text px={ 4 } py={ 2 } color="gray.400" fontWeight={ 500 } fontSize="sm">Analytics</Text>
       </HStack>
 
       <Box className="seth-panel seth-panel-hover" borderWidth="1px" borderColor={ borderColor } overflow="hidden">
         <Grid
-          px={ 6 }
+          px={ 5 }
           py={ 3 }
           borderBottomWidth="1px"
           borderBottomColor={ borderColor }
           bgColor="rgba(255, 255, 255, 0.05)"
-          gridTemplateColumns="1.1fr 0.8fr 0.7fr 0.8fr 0.8fr 0.8fr 0.8fr 0.6fr"
-          columnGap={ 4 }
+          gridTemplateColumns="1fr 0.78fr 0.62fr 0.74fr 0.8fr 0.8fr 0.68fr 0.62fr"
+          columnGap={ 3 }
           fontSize="xs"
           letterSpacing="wider"
           color="rgba(255, 255, 255, 0.65)"
@@ -141,12 +145,12 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
           { txRows.map((row) => (
             <Grid
               key={ row.id }
-              px={ 6 }
+              px={ 5 }
               py={ 4 }
               borderBottomWidth="1px"
               borderBottomColor={ borderColor }
-              gridTemplateColumns="1.1fr 0.8fr 0.7fr 0.8fr 0.8fr 0.8fr 0.8fr 0.6fr"
-              columnGap={ 4 }
+              gridTemplateColumns="1fr 0.78fr 0.62fr 0.74fr 0.8fr 0.8fr 0.68fr 0.62fr"
+              columnGap={ 3 }
               alignItems="center"
               fontSize="sm"
             >
@@ -165,14 +169,44 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
               >
                 { row.method }
               </Text>
-              { row.blockHref ? <Link noIcon href={ row.blockHref } color="seth.primary">{ row.block }</Link> : <Text color="seth.primary">{ row.block }</Text> }
+              { row.blockHref ? <Link noIcon href={ row.blockHref } color={ secondaryLinkColor }>{ row.block }</Link> : <Text color={ secondaryLinkColor }>{ row.block }</Text> }
               <Text color="gray.400">{ row.age }</Text>
               <HStack gap={ 2 }>
-                { row.fromHref ? <Link noIcon href={ row.fromHref } color="seth.primary">{ row.from }</Link> : <Text color="seth.primary">{ row.from }</Text> }
+                { row.fromYou ? (
+                  <Text
+                    px={ 2 }
+                    py={ 0.5 }
+                    borderRadius="md"
+                    bgColor="rgba(0, 255, 163, 0.2)"
+                    borderWidth="1px"
+                    borderColor="rgba(0, 255, 163, 0.3)"
+                    color="seth.primary"
+                    fontFamily="mono"
+                  >
+                    { row.from }
+                  </Text>
+                ) : (
+                  row.fromHref ? <Link noIcon href={ row.fromHref } color={ secondaryLinkColor } fontFamily="mono">{ row.from }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ row.from }</Text>
+                ) }
                 { row.fromYou && <Text color="gray.500" fontSize="xs">(You)</Text> }
               </HStack>
               <HStack gap={ 2 }>
-                { row.toHref ? <Link noIcon href={ row.toHref } color="seth.primary">{ row.to }</Link> : <Text color="seth.primary">{ row.to }</Text> }
+                { row.toYou ? (
+                  <Text
+                    px={ 2 }
+                    py={ 0.5 }
+                    borderRadius="md"
+                    bgColor="rgba(0, 255, 163, 0.2)"
+                    borderWidth="1px"
+                    borderColor="rgba(0, 255, 163, 0.3)"
+                    color="seth.primary"
+                    fontFamily="mono"
+                  >
+                    { row.to }
+                  </Text>
+                ) : (
+                  row.toHref ? <Link noIcon href={ row.toHref } color={ secondaryLinkColor } fontFamily="mono">{ row.to }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ row.to }</Text>
+                ) }
                 { row.toYou && <Text color="gray.500" fontSize="xs">(You)</Text> }
               </HStack>
               <Text color="gray.100" fontWeight={ 500 }>{ row.value }</Text>

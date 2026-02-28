@@ -9,6 +9,8 @@ import useApiQuery from 'lib/api/useApiQuery';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { STATS_CHARTS } from 'stubs/stats';
 
+import { getFallbackLineCharts } from './fallbackCharts';
+
 function isSectionMatches(section: stats.LineChartSection, currentSection: string): boolean {
   return currentSection === 'all' || section.id === currentSection;
 }
@@ -24,12 +26,26 @@ interface Props {
 export default function useStats({ chain }: Props = {}) {
   const router = useRouter();
 
-  const { data, isPlaceholderData, isError } = useApiQuery('stats:lines', {
+  const linesQuery = useApiQuery('stats:lines', {
     queryOptions: {
       placeholderData: STATS_CHARTS,
     },
     chain,
   });
+  const fallbackDailyTxsQuery = useApiQuery('general:stats_charts_txs', {
+    queryOptions: {
+      enabled: linesQuery.isError,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+    chain,
+  });
+
+  const isFallbackMode = linesQuery.isError && fallbackDailyTxsQuery.isSuccess;
+  const data = isFallbackMode ? getFallbackLineCharts() : linesQuery.data;
+  const isError = linesQuery.isError && !isFallbackMode && fallbackDailyTxsQuery.isError;
+  const isPlaceholderData = linesQuery.isPlaceholderData || (linesQuery.isError && fallbackDailyTxsQuery.isPlaceholderData);
 
   const [ currentSection, setCurrentSection ] = useState('all');
   const [ filterQuery, setFilterQuery ] = useState('');
@@ -88,6 +104,7 @@ export default function useStats({ chain }: Props = {}) {
     handleIntervalChange,
     handleFilterChange,
     displayedCharts,
+    isFallbackMode,
   }), [
     data,
     sectionIds,
@@ -101,5 +118,6 @@ export default function useStats({ chain }: Props = {}) {
     handleIntervalChange,
     handleFilterChange,
     displayedCharts,
+    isFallbackMode,
   ]);
 }

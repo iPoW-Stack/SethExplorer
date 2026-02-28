@@ -23,7 +23,7 @@ const LayoutHome = ({ children }: Props) => {
         <Layout.MainArea>
           <Layout.SideBar/>
           <Layout.MainColumn
-            paddingTop={{ base: 3, lg: isSethStrict ? 2 : 6 }}
+            paddingTop={{ base: 3, lg: isSethStrict ? 8 : 6 }}
           >
             <HeaderAlert mb={ isSethStrict ? 0 : 3 }/>
             { isSethStrict && <HeaderDesktop/> }

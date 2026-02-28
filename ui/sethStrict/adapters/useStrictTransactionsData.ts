@@ -86,10 +86,12 @@ export default function useStrictTransactionsData({ query }: Params): StrictPage
     };
   }
 
-  const rows = (query.data?.items || []).map((item) => {
+  const items = query.isPlaceholderData ? [] : (query.data?.items || []);
+
+  const rows = items.map((item, index) => {
     const method = getMethodName(item.method, item.transaction_types);
     return {
-      id: item.hash,
+      id: `${ item.hash || 'tx' }-${ index }`,
       hash: shortHash(item.hash),
       txHref: route({ pathname: '/tx/[hash]', query: { hash: item.hash } }),
       method,
@@ -109,7 +111,7 @@ export default function useStrictTransactionsData({ query }: Params): StrictPage
 
   return {
     mode: 'live',
-    isLoading: query.isPlaceholderData,
+    isLoading: query.isPlaceholderData || query.isPending || query.isLoading,
     isError: query.isError,
     errorMessage: query.isError ? getErrorMessage(query.error) : undefined,
     rows,
@@ -125,4 +127,3 @@ export default function useStrictTransactionsData({ query }: Params): StrictPage
     },
   };
 }
-

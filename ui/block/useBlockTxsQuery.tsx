@@ -31,7 +31,7 @@ interface Params {
   heightOrHash: string;
   blockQuery: BlockQuery;
   tab: string;
-  /** Shard pool index (0–32). Only used when heightOrHash is block number. */
+  /** Global transaction pool index. Only used when heightOrHash is block number. */
   poolIndex?: number | null;
 }
 

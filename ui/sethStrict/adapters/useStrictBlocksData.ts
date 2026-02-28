@@ -3,6 +3,7 @@ import React from 'react';
 
 import { route } from 'nextjs-routes';
 
+import { formatSethPoolIndexCompact } from 'lib/seth/poolIndex';
 import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
 import type { QueryWithPagesResult } from 'ui/shared/pagination/useQueryWithPages';
 import { WEI } from 'ui/shared/value/utils';
@@ -91,12 +92,22 @@ export default function useStrictBlocksData({ query }: Params): StrictPageAdapte
     };
   }
 
-  const rows = (query.data?.items || []).map((item) => {
+  const items = query.isPlaceholderData ? [] : (query.data?.items || []);
+
+  const rows = items.map((item, index) => {
     const gasProgress = calcPercent(item.gas_used, item.gas_limit);
+    const blockNumber = String(item.height);
+    const poolLabel = item.pool_index !== null && item.pool_index !== undefined ? formatSethPoolIndexCompact(item.pool_index) : undefined;
+    const blockQuery = {
+      height_or_hash: blockNumber,
+      ...(item.pool_index !== null && item.pool_index !== undefined ? { pool_index: String(item.pool_index) } : {}),
+    };
+
     return {
-      id: `${ item.height }-${ item.hash }`,
-      block: String(item.height),
-      blockHref: route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: String(item.height) } }),
+      id: `${ item.height ?? 'na' }-${ item.hash ?? 'na' }-${ index }`,
+      block: blockNumber,
+      blockHref: route({ pathname: '/block/[height_or_hash]', query: blockQuery }),
+      poolLabel,
       age: formatAge(item.timestamp),
       txns: String(item.transactions_count),
       miner: shortHash(item.miner?.name || item.miner?.hash),
@@ -108,16 +119,16 @@ export default function useStrictBlocksData({ query }: Params): StrictPageAdapte
     };
   });
 
+  const firstLiveBlock = query.data?.items?.[0]?.height;
   const hasRows = rows.length > 0;
-  const firstBlock = hasRows ? rows[0].block : '-';
 
   return {
     mode: 'live',
-    isLoading: query.isPlaceholderData,
+    isLoading: query.isPlaceholderData || query.isPending || query.isLoading,
     isError: query.isError,
     errorMessage: query.isError ? getErrorMessage(query.error) : undefined,
     rows,
-    totalLabel: hasRows ? `Latest block #${ firstBlock }` : 'No blocks found',
+    totalLabel: firstLiveBlock !== undefined ? `Latest block #${ firstLiveBlock }` : (hasRows ? `Latest block #${ rows[0].block }` : 'No blocks found'),
     refetch: query.refetch,
     pagination: {
       pageLabel: `Page ${ query.pagination.page }`,
@@ -129,4 +140,3 @@ export default function useStrictBlocksData({ query }: Params): StrictPageAdapte
     },
   };
 }
-

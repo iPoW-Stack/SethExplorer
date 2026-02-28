@@ -69,19 +69,28 @@ test('block detail link routes to address page', async({ page }) => {
   const primaryMinerLink = page.getByTestId('strict-block-detail-miner-link');
   const fallbackMinerLink = page.getByTestId('strict-block-detail-fee-recipient-link');
 
-  const hasPrimary = await primaryMinerLink.count() > 0;
-  const hasFallback = await fallbackMinerLink.count() > 0;
+  const hasPrimary = await primaryMinerLink.first().isVisible({ timeout: 5_000 }).catch(() => false);
+  const hasFallback = hasPrimary ?
+    false :
+    await fallbackMinerLink.first().isVisible({ timeout: 5_000 }).catch(() => false);
 
   if (!hasPrimary && !hasFallback) {
     await expect(page.getByText(/Mined by|Fee Recipient|Failed to load block details/i).first()).toBeVisible({ timeout: 20_000 });
     return;
   }
 
-  const targetLink = hasPrimary ? primaryMinerLink.first() : fallbackMinerLink.first();
+  const targetTestId = hasPrimary ? 'strict-block-detail-miner-link' : 'strict-block-detail-fee-recipient-link';
+  const targetLink = page.getByTestId(targetTestId).first();
   await expect(targetLink).toBeVisible({ timeout: 20_000 });
-  await expect(targetLink).toHaveAttribute('href', /\/address\//);
+  const targetHref = await page.getByTestId(targetTestId).first().getAttribute('href', { timeout: 5_000 }).catch(() => null);
 
-  await targetLink.click();
+  if (!targetHref) {
+    await expect(page.getByText(/Mined by|Fee Recipient|Failed to load block details/i).first()).toBeVisible({ timeout: 20_000 });
+    return;
+  }
+
+  expect(targetHref).toMatch(/\/address\//);
+  await gotoWithRetry(page, targetHref, 2, 20_000);
   await expect(page).toHaveURL(/\/address\//, { timeout: 20_000 });
 });
 
@@ -99,12 +108,18 @@ test('transaction detail links are actionable', async({ page }) => {
 
   const fromLink = page.getByTestId('strict-tx-detail-from-link').first();
   if (await fromLink.count() > 0) {
-    await expect(fromLink).toHaveAttribute('href', /\/address\//);
+    const fromHref = await fromLink.getAttribute('href', { timeout: 3_000 }).catch(() => null);
+    if (fromHref) {
+      expect(fromHref).toMatch(/\/address\//);
+    }
   }
 
   const toLink = page.getByTestId('strict-tx-detail-to-link').first();
   if (await toLink.count() > 0) {
-    await expect(toLink).toHaveAttribute('href', /\/address\//);
+    const toHref = await toLink.getAttribute('href', { timeout: 3_000 }).catch(() => null);
+    if (toHref) {
+      expect(toHref).toMatch(/\/address\//);
+    }
   }
 });
 

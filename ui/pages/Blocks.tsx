@@ -46,7 +46,7 @@ const BlocksPageContent = () => {
     filters: { type: 'block' },
     options: {
       enabled: isSethStrict || tab === 'blocks' || !tab,
-      placeholderData: generateListStub<'general:blocks'>(BLOCK, 50, { next_page_params: {
+      placeholderData: isSethStrict ? undefined : generateListStub<'general:blocks'>(BLOCK, 50, { next_page_params: {
         block_number: 8988686,
         items_count: 50,
       } }),

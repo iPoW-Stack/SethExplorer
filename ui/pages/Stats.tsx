@@ -24,6 +24,7 @@ const Stats = () => {
     handleFilterChange,
     displayedCharts,
     initialFilterQuery,
+    isFallbackMode,
   } = useStats();
   const [ isLoadingStuck, setIsLoadingStuck ] = React.useState(false);
 
@@ -54,7 +55,7 @@ const Stats = () => {
       <PageTitle
         title={ config.meta.seo.enhancedDataEnabled ? `${ config.chain.name } statistic & data` : `${ config.chain.name } stats` }
       />
-      {(isError || isLoadingStuck) && (
+      { (isError || isLoadingStuck) && (
         <Alert status="warning" mb={{ base: 6, sm: 8 }}>
           <Flex alignItems="center" justifyContent="space-between" width="100%" gap={ 4 }>
             <Text>
@@ -65,13 +66,25 @@ const Stats = () => {
             <Button size="xs" variant="subtle" onClick={ handleRetry }>Retry</Button>
           </Flex>
         </Alert>
-      )}
+      ) }
+      { isFallbackMode && (
+        <Alert status="info" mb={{ base: 6, sm: 8 }}>
+          <Text>
+            Primary stats service is temporarily unavailable. Showing transaction charts from the explorer API.
+          </Text>
+        </Alert>
+      ) }
 
       <Box mb={{ base: 6, sm: 8 }}>
         <NumberWidgetsList/>
       </Box>
 
-      <Box mb={{ base: 6, sm: 8 }}>
+      <Box
+        mb={{ base: 6, sm: 8 }}
+        className="seth-panel-soft"
+        px={{ base: 3, lg: 4 }}
+        py={{ base: 3, lg: 4 }}
+      >
         <StatsFilters
           isLoading={ isPlaceholderData }
           initialFilterValue={ initialFilterQuery }

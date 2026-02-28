@@ -3,9 +3,14 @@ import React from 'react';
 import type { LineChart, Resolution } from '@blockscout/stats-types';
 import type { StatsIntervalIds } from 'types/client/stats';
 
+import type { ResourceError } from 'lib/api/resources';
 import useApiQuery from 'lib/api/useApiQuery';
 import { useAppContext } from 'lib/contexts/app';
 import { STATS_INTERVALS } from 'ui/stats/constants';
+import {
+  FALLBACK_DAILY_TX_CHART_ID,
+  mapTransactionsChartToLineChart,
+} from 'ui/stats/fallbackCharts';
 
 import { formatDate } from './utils';
 
@@ -41,21 +46,43 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
       },
     },
   });
+  const fallbackDailyTxsQuery = useApiQuery('general:stats_charts_txs', {
+    queryOptions: {
+      enabled: enabled && id === FALLBACK_DAILY_TX_CHART_ID && lineQuery.isError,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  });
+
+  const fallbackData = mapTransactionsChartToLineChart(fallbackDailyTxsQuery.data);
+  const isFallbackDataActive = lineQuery.isError && Boolean(fallbackData);
+  const data = isFallbackDataActive ? fallbackData : lineQuery.data;
+  const isError = lineQuery.isError && !isFallbackDataActive;
+  const isPlaceholderData = lineQuery.isPlaceholderData || (lineQuery.isError && fallbackDailyTxsQuery.isPlaceholderData);
+  const isPending = lineQuery.isPending || (lineQuery.isError && fallbackDailyTxsQuery.isPending);
+  const error = (lineQuery.error || fallbackDailyTxsQuery.error) as ResourceError | null;
 
   React.useEffect(() => {
-    if (!info && lineQuery.data?.info && !lineQuery.isPlaceholderData) {
+    if (!info && data?.info && !isPlaceholderData) {
       // save info to keep title and description when change query params
-      setInfo(lineQuery.data?.info);
+      setInfo(data?.info);
     }
-  }, [ info, lineQuery.data?.info, lineQuery.isPlaceholderData ]);
+  }, [ data?.info, info, isPlaceholderData ]);
 
-  const items = React.useMemo(() => lineQuery.data?.chart?.map((item) => {
+  const items = React.useMemo(() => data?.chart?.map((item) => {
     return { date: new Date(item.date), date_to: new Date(item.date_to), value: Number(item.value), isApproximate: item.is_approximate };
-  }), [ lineQuery ]);
+  }), [ data?.chart ]);
 
   return {
     items,
     info,
+    data,
+    error,
+    isError,
+    isPending,
+    isPlaceholderData,
+    isFallbackDataActive,
     lineQuery,
   };
 }

@@ -1,4 +1,4 @@
-import { createListCollection, Flex, Text } from '@chakra-ui/react';
+import { Box, createListCollection, Flex, Text } from '@chakra-ui/react';
 import type { NextRouter } from 'next/router';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -117,7 +117,15 @@ const Chart = () => {
     onResolutionChange({ value: [ DEFAULT_RESOLUTION ] });
   }, [ handleZoomReset, onResolutionChange ]);
 
-  const { items, info, lineQuery } = useChartQuery(id, resolution, interval);
+  const {
+    items,
+    info,
+    data,
+    error,
+    isError,
+    isPending,
+    isPlaceholderData,
+  } = useChartQuery(id, resolution, interval);
 
   const charts = React.useMemo(() => {
     if (!info || !items) {
@@ -154,15 +162,15 @@ const Chart = () => {
     } catch (error) {}
   }, [ info, id ]);
 
-  if (lineQuery.isError) {
-    if (isCustomAppError(lineQuery.error)) {
-      throwOnResourceLoadError({ resource: 'stats:line', error: lineQuery.error, isError: true });
+  if (isError && error) {
+    if (isCustomAppError(error)) {
+      throwOnResourceLoadError({ resource: 'stats:line', error: error, isError: true });
     }
   }
 
-  const hasItems = (items && items.length > 2) || lineQuery.isPending;
+  const hasItems = (items && items.length > 2) || isPending;
 
-  const isInfoLoading = !info && lineQuery.isPlaceholderData;
+  const isInfoLoading = !info && isPlaceholderData;
 
   const shareButton = (
     <Button
@@ -170,7 +178,7 @@ const Chart = () => {
       variant="outline"
       onClick={ onShare }
       ml={ 6 }
-      loadingSkeleton={ lineQuery.isPlaceholderData }
+      loadingSkeleton={ isPlaceholderData }
     >
       <IconSvg name="share" w={ 4 } h={ 4 }/>
       Share
@@ -178,24 +186,31 @@ const Chart = () => {
   );
 
   const resolutionCollection = React.useMemo(() => {
-    const resolutions = lineQuery.data?.info?.resolutions || [];
+    const resolutions = data?.info?.resolutions || [];
     const items = STATS_RESOLUTIONS
       .filter((resolution) => resolutions.includes(resolution.id))
       .map((resolution) => ({ value: resolution.id, label: resolution.title }));
 
     return createListCollection<SelectOption>({ items });
-  }, [ lineQuery.data?.info?.resolutions ]);
+  }, [ data?.info?.resolutions ]);
 
   return (
     <>
       <PageTitle
-        title={ info?.title || lineQuery.data?.info?.title || '' }
+        title={ info?.title || data?.info?.title || '' }
         mb={ 3 }
         isLoading={ isInfoLoading }
-        secondRow={ info?.description || lineQuery.data?.info?.description }
+        secondRow={ info?.description || data?.info?.description }
         withTextAd
       />
-      <Flex alignItems="center" justifyContent="space-between">
+      <Flex
+        alignItems="center"
+        justifyContent="space-between"
+        className="seth-panel-soft"
+        px={{ base: 3, lg: 4 }}
+        py={{ base: 2.5, lg: 3 }}
+        borderRadius="lg"
+      >
         <Flex alignItems="center" gap={{ base: 3, lg: 6 }} maxW="100%">
           { multichainContext?.chain && (
             <ChainSelect
@@ -210,7 +225,7 @@ const Chart = () => {
           </Flex>
           { (
             (info?.resolutions && info?.resolutions.length > 1) ||
-            (!info && lineQuery.data?.info?.resolutions && lineQuery.data?.info?.resolutions.length > 1)
+            (!info && data?.info?.resolutions && data.info.resolutions.length > 1)
           ) && (
             <Flex alignItems="center" gap={ 3 }>
               <Skeleton loading={ isInfoLoading }>
@@ -256,12 +271,12 @@ const Chart = () => {
               />
             )
           )) }
-          { (hasItems || lineQuery.isPlaceholderData) && (
+          { (hasItems || isPlaceholderData) && (
             <ChartMenu
               charts={ charts }
               title={ info?.title || '' }
               description={ info?.description || '' }
-              isLoading={ lineQuery.isPlaceholderData }
+              isLoading={ isPlaceholderData }
               chartRef={ ref }
               resolution={ resolution }
               zoomRange={ zoomRange }
@@ -272,25 +287,31 @@ const Chart = () => {
           ) }
         </Flex>
       </Flex>
-      <Flex
-        ref={ ref }
-        flexGrow={ 1 }
-        h="50vh"
+      <Box
         mt={ 3 }
-        position="relative"
+        className="seth-panel"
+        borderRadius="lg"
       >
-        <ChartWidgetContent
-          isError={ lineQuery.isError }
-          charts={ charts }
-          isEnlarged
-          isLoading={ lineQuery.isPlaceholderData }
-          zoomRange={ zoomRange }
-          handleZoom={ handleZoom }
-          empty={ !hasNonEmptyCharts }
-          emptyText="No data for the selected resolution & interval."
-          resolution={ resolution }
-        />
-      </Flex>
+        <Flex
+          ref={ ref }
+          flexGrow={ 1 }
+          h="50vh"
+          position="relative"
+          p={{ base: 2, lg: 3 }}
+        >
+          <ChartWidgetContent
+            isError={ isError }
+            charts={ charts }
+            isEnlarged
+            isLoading={ isPlaceholderData }
+            zoomRange={ zoomRange }
+            handleZoom={ handleZoom }
+            empty={ !hasNonEmptyCharts }
+            emptyText="No data for the selected resolution & interval."
+            resolution={ resolution }
+          />
+        </Flex>
+      </Box>
     </>
   );
 };

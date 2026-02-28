@@ -1,4 +1,5 @@
 import config from 'configs/app';
+import { getEnvValue } from 'configs/app/utils';
 
 import type { SethStrictDataSource } from 'types/ui';
 
@@ -7,10 +8,30 @@ export function isSethTheme() {
 }
 
 export function isSethStrict() {
-  return isSethTheme() && config.UI.strict.mode;
+  if (!isSethTheme()) {
+    return false;
+  }
+
+  const strictModeValue = getEnvValue('NEXT_PUBLIC_SETH_STRICT_MODE');
+
+  if (strictModeValue === undefined) {
+    return config.UI.strict.mode;
+  }
+
+  return strictModeValue !== 'false';
 }
 
 export function getSethStrictDataSource(): SethStrictDataSource {
+  const strictDataSourceValue = getEnvValue('NEXT_PUBLIC_SETH_STRICT_DATA_SOURCE');
+
+  if (strictDataSourceValue === 'live') {
+    return 'live';
+  }
+
+  if (strictDataSourceValue === 'stub') {
+    return 'stub';
+  }
+
   return config.UI.strict.dataSource;
 }
 

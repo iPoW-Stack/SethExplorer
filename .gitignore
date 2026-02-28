@@ -66,3 +66,19 @@ yarn-error.log*
 # build outputs
 /tools/preset-sync/index.js
 /toolkit/package/dist
+
+# local run artifacts
+.next-dev-*.log
+.next-dev-*.err.log
+.tmp-next-dev-*.pid
+qa-artifacts/
+tmp_*
+tmp_remote_backend/
+__pycache__/
+explorer-fe-sync-*.tgz
+127.0.0.1
+32173
+
+# local credentials
+gcp_key
+gcp_key.pub

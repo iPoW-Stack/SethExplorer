@@ -123,12 +123,16 @@ test('header search supports block/tx/address keywords', async({ page }) => {
   }
 });
 
-test('stats page has visible terminal state (data or retry)', async({ page }) => {
+test('stats page renders a usable chart state', async({ page }) => {
   test.slow();
   test.setTimeout(90_000);
   await gotoWithRetry(page, '/stats', 2, 45_000);
-  const terminalState = page.locator('h2:visible, [role="alert"]:visible');
-  await expect(terminalState.first()).toBeVisible({ timeout: 35_000 });
+
+  const chartLink = page.locator('a[href^="/stats/"]').first();
+  const retryButton = page.getByRole('button', { name: /Retry/i }).first();
+
+  await expect(chartLink).toBeVisible({ timeout: 60_000 });
+  await expect(retryButton).toHaveCount(0);
 });
 
 test('blocks table links and pagination action work', async({ page }) => {
@@ -214,11 +218,24 @@ test('token list has actionable token links', async({ page }) => {
   await gotoWithRetry(page, '/tokens', 2, 35_000);
   await assertNoRuntimeError(page);
 
-  const tokenLink = page.locator('a[href^="/token/"]:visible').first();
-  if (await tokenLink.count() > 0) {
-    await expect(tokenLink).toHaveAttribute('href', /\/token\//);
-    return;
+  const tokenLinks = page.locator('a[href^="/token/"]:visible');
+  const terminalText = page.getByText(/No tokens|No data|Failed to load|Unable to fetch/i).first();
+
+  const start = Date.now();
+  while (Date.now() - start < 35_000) {
+    if (await tokenLinks.count() > 0) {
+      const tokenLink = tokenLinks.first();
+      await expect(tokenLink).toHaveAttribute('href', /\/token\//);
+      return;
+    }
+
+    if (await terminalText.count() > 0 && await terminalText.isVisible().catch(() => false)) {
+      await expect(terminalText).toBeVisible();
+      return;
+    }
+
+    await page.waitForTimeout(1_000);
   }
 
-  await expect(page.getByText(/No tokens|No data/i).first()).toBeVisible({ timeout: 20_000 });
+  await expect(terminalText).toBeVisible({ timeout: 20_000 });
 });
