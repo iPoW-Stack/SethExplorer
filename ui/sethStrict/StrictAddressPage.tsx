@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, HStack, Text, VStack } from '@chakra-ui/react';
+import { Box, Flex, Grid, HStack, Text, VStack, chakra } from '@chakra-ui/react';
 import React from 'react';
 import { FaEthereum } from 'react-icons/fa';
 import { FaCoins, FaUser, FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
@@ -20,6 +20,33 @@ interface Props {
   addressQuery?: AddressQuery;
 }
 
+type StrictAddressTabId = 'transactions' | 'internal' | 'tokenTransfers' | 'analytics';
+
+const tabs: Array<{ id: StrictAddressTabId; label: string; }> = [
+  { id: 'transactions', label: 'Transactions' },
+  { id: 'internal', label: 'Internal Txs' },
+  { id: 'tokenTransfers', label: 'Token Transfers' },
+  { id: 'analytics', label: 'Analytics' },
+];
+
+const tabPanelLinks: Record<Exclude<StrictAddressTabId, 'transactions'>, { href: string; cta: string; description: string; }> = {
+  internal: {
+    href: '/internal-txs',
+    cta: 'Open internal transactions',
+    description: 'Internal transaction details are available in the full table view.',
+  },
+  tokenTransfers: {
+    href: '/token-transfers',
+    cta: 'Open token transfers',
+    description: 'Token transfer details are available in the dedicated token transfer page.',
+  },
+  analytics: {
+    href: '/stats',
+    cta: 'Open analytics dashboard',
+    description: 'Address analytics is being expanded. Open the stats dashboard for current metrics.',
+  },
+};
+
 const StrictAddressPage = ({ hash, addressQuery }: Props) => {
   const {
     state,
@@ -33,6 +60,43 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
     pagination,
     refetch,
   } = useStrictAddressData({ hash, addressQuery });
+  const [activeTab, setActiveTab] = React.useState<StrictAddressTabId>('transactions');
+  const tabContainerRef = React.useRef<HTMLDivElement>(null);
+  const tabRefs = React.useRef<Record<StrictAddressTabId, HTMLButtonElement | null>>({
+    transactions: null,
+    internal: null,
+    tokenTransfers: null,
+    analytics: null,
+  });
+  const [indicatorStyle, setIndicatorStyle] = React.useState({ left: 0, width: 0, opacity: 0 });
+
+  const syncIndicatorStyle = React.useCallback(() => {
+    const tabNode = tabRefs.current[activeTab];
+    const containerNode = tabContainerRef.current;
+
+    if (!tabNode || !containerNode) {
+      return;
+    }
+
+    setIndicatorStyle({
+      left: tabNode.offsetLeft,
+      width: tabNode.offsetWidth,
+      opacity: 1,
+    });
+  }, [activeTab]);
+
+  React.useEffect(() => {
+    syncIndicatorStyle();
+    const rafId = window.requestAnimationFrame(syncIndicatorStyle);
+    const timerId = window.setTimeout(syncIndicatorStyle, 120);
+    window.addEventListener('resize', syncIndicatorStyle);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timerId);
+      window.removeEventListener('resize', syncIndicatorStyle);
+    };
+  }, [syncIndicatorStyle, txRows.length]);
 
   return (
     <Box className="seth-page-shell">
@@ -76,7 +140,15 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
       </Box>
 
       <Grid gridTemplateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={ 6 } mb={ 6 }>
-        <Box className="seth-panel seth-panel-hover" p={ 6 } borderWidth="1px" borderColor={ borderColor } position="relative" overflow="hidden">
+        <Box
+          className="seth-panel seth-panel-hover seth-fade-in-up"
+          style={{ '--seth-index': 0 } as React.CSSProperties}
+          p={ 6 }
+          borderWidth="1px"
+          borderColor={ borderColor }
+          position="relative"
+          overflow="hidden"
+        >
           <Text color="gray.300" mb={ 2 }>ETH Balance</Text>
           <Text fontSize="3xl" lineHeight="1.1" fontWeight={ 700 } mb={ 2 }>{ balanceLabel }</Text>
           <Text color="gray.300">{ balanceUsdLabel }</Text>
@@ -85,7 +157,15 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
           </Box>
         </Box>
 
-        <Box className="seth-panel seth-panel-hover" p={ 6 } borderWidth="1px" borderColor={ borderColor } position="relative" overflow="hidden">
+        <Box
+          className="seth-panel seth-panel-hover seth-fade-in-up"
+          style={{ '--seth-index': 1 } as React.CSSProperties}
+          p={ 6 }
+          borderWidth="1px"
+          borderColor={ borderColor }
+          position="relative"
+          overflow="hidden"
+        >
           <Text color="gray.300" mb={ 2 }>Token Holdings</Text>
           <Text fontSize="3xl" lineHeight="1.1" fontWeight={ 700 } mb={ 3 }>{ holdingsLabel }</Text>
           <Flex
@@ -111,152 +191,231 @@ const StrictAddressPage = ({ hash, addressQuery }: Props) => {
         </Box>
       </Grid>
 
-      <HStack gap={ 0 } px={ 0 } mb={ 6 } borderBottomWidth="1px" borderBottomColor={ borderColor }>
-        <Text px={ 4 } py={ 2 } color="seth.primary" fontWeight={ 500 } fontSize="sm" borderBottomWidth="2px" borderBottomColor="seth.primary">Transactions</Text>
-        <Text px={ 4 } py={ 2 } color="gray.400" fontWeight={ 500 } fontSize="sm">Internal Txs</Text>
-        <Text px={ 4 } py={ 2 } color="gray.400" fontWeight={ 500 } fontSize="sm">Token Transfers</Text>
-        <Text px={ 4 } py={ 2 } color="gray.400" fontWeight={ 500 } fontSize="sm">Analytics</Text>
-      </HStack>
+      <Box mb={ 6 } position="relative" borderBottomWidth="1px" borderBottomColor={ borderColor } ref={ tabContainerRef }>
+        <HStack gap={ 0 } px={ 0 } alignItems="stretch">
+          { tabs.map((tab) => {
+            const isActive = tab.id === activeTab;
 
-      <Box className="seth-panel seth-panel-hover" borderWidth="1px" borderColor={ borderColor } overflow="hidden">
-        <Grid
-          px={ 5 }
-          py={ 3 }
-          borderBottomWidth="1px"
-          borderBottomColor={ borderColor }
-          bgColor="rgba(255, 255, 255, 0.05)"
-          gridTemplateColumns="1fr 0.78fr 0.62fr 0.74fr 0.8fr 0.8fr 0.68fr 0.62fr"
-          columnGap={ 3 }
-          fontSize="xs"
-          letterSpacing="wider"
-          color="rgba(255, 255, 255, 0.65)"
-        >
-          <Text>TXN HASH</Text>
-          <Text>METHOD</Text>
-          <Text>BLOCK</Text>
-          <Text>AGE</Text>
-          <Text>FROM</Text>
-          <Text>TO</Text>
-          <Text>VALUE</Text>
-          <Text>TXN FEE</Text>
-        </Grid>
-
-        <VStack alignItems="stretch" gap={ 0 }>
-          { txRows.map((row) => (
-            <Grid
-              key={ row.id }
-              px={ 5 }
-              py={ 4 }
-              borderBottomWidth="1px"
-              borderBottomColor={ borderColor }
-              gridTemplateColumns="1fr 0.78fr 0.62fr 0.74fr 0.8fr 0.8fr 0.68fr 0.62fr"
-              columnGap={ 3 }
-              alignItems="center"
-              fontSize="sm"
-            >
-              <Link noIcon href={ row.txHref } data-testid="strict-address-row-hash-link" color="seth.primary" fontWeight={ 500 } fontFamily="mono">{ row.hash }</Link>
-              <Text
-                color="gray.200"
-                bgColor="rgba(31, 41, 55, 0.65)"
-                borderWidth="1px"
-                borderColor="rgba(75, 85, 99, 0.8)"
-                borderRadius="md"
-                px={ 2 }
-                py={ 1 }
-                width="fit-content"
-                fontSize="xs"
-                fontWeight={ 500 }
+            return (
+              <chakra.button
+                key={ tab.id }
+                type="button"
+                ref={ (node: HTMLButtonElement | null) => {
+                  tabRefs.current[tab.id] = node;
+                } }
+                px={ 4 }
+                py={ 2.5 }
+                color={ isActive ? 'seth.primary' : 'gray.400' }
+                fontWeight={ isActive ? 600 : 500 }
+                fontSize="sm"
+                transition="color 0.2s ease"
+                _hover={{ color: isActive ? 'seth.primary' : 'gray.200' }}
+                onClick={ () => setActiveTab(tab.id) }
               >
-                { row.method }
-              </Text>
-              { row.blockHref ? <Link noIcon href={ row.blockHref } color={ secondaryLinkColor }>{ row.block }</Link> : <Text color={ secondaryLinkColor }>{ row.block }</Text> }
-              <Text color="gray.400">{ row.age }</Text>
-              <HStack gap={ 2 }>
-                { row.fromYou ? (
-                  <Text
-                    px={ 2 }
-                    py={ 0.5 }
-                    borderRadius="md"
-                    bgColor="rgba(0, 255, 163, 0.2)"
-                    borderWidth="1px"
-                    borderColor="rgba(0, 255, 163, 0.3)"
-                    color="seth.primary"
-                    fontFamily="mono"
-                  >
-                    { row.from }
-                  </Text>
-                ) : (
-                  row.fromHref ? <Link noIcon href={ row.fromHref } color={ secondaryLinkColor } fontFamily="mono">{ row.from }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ row.from }</Text>
-                ) }
-                { row.fromYou && <Text color="gray.500" fontSize="xs">(You)</Text> }
-              </HStack>
-              <HStack gap={ 2 }>
-                { row.toYou ? (
-                  <Text
-                    px={ 2 }
-                    py={ 0.5 }
-                    borderRadius="md"
-                    bgColor="rgba(0, 255, 163, 0.2)"
-                    borderWidth="1px"
-                    borderColor="rgba(0, 255, 163, 0.3)"
-                    color="seth.primary"
-                    fontFamily="mono"
-                  >
-                    { row.to }
-                  </Text>
-                ) : (
-                  row.toHref ? <Link noIcon href={ row.toHref } color={ secondaryLinkColor } fontFamily="mono">{ row.to }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ row.to }</Text>
-                ) }
-                { row.toYou && <Text color="gray.500" fontSize="xs">(You)</Text> }
-              </HStack>
-              <Text color="gray.100" fontWeight={ 500 }>{ row.value }</Text>
-              <Text color="gray.400" fontSize="xs">{ row.fee }</Text>
-            </Grid>
-          )) }
-        </VStack>
+                { tab.label }
+              </chakra.button>
+            );
+          }) }
+        </HStack>
+        <Box
+          position="absolute"
+          bottom={ 0 }
+          left={ `${indicatorStyle.left}px` }
+          width={ `${indicatorStyle.width}px` }
+          opacity={ indicatorStyle.opacity }
+          height="2px"
+          bgColor="seth.primary"
+          borderRadius="full"
+          transition="left 0.2s ease, width 0.2s ease, opacity 0.2s ease"
+          pointerEvents="none"
+        />
       </Box>
 
-      { pagination && (
-        <Flex mt={ 4 } alignItems="center" justifyContent="flex-end" gap={ 3 }>
-          <Flex
-            as="button"
-            data-testid="strict-address-prev-page"
-            aria-label="Previous address transactions page"
-            aria-disabled={ !pagination.canGoPrev }
-            boxSize="34px"
+      { activeTab === 'transactions' ? (
+        <>
+          <Box
+            className="seth-panel seth-panel-hover seth-fade-in-up"
+            style={{ '--seth-index': 2 } as React.CSSProperties}
             borderWidth="1px"
             borderColor={ borderColor }
-            borderRadius="lg"
-            alignItems="center"
-            justifyContent="center"
-            color="gray.400"
-            bgColor="rgba(4, 6, 8, 0.75)"
-            opacity={ pagination.canGoPrev ? 1 : 0.5 }
-            cursor={ pagination.canGoPrev ? 'pointer' : 'not-allowed' }
-            onClick={ pagination.canGoPrev ? pagination.onPrev : undefined }
+            overflow="hidden"
           >
-            <FaChevronLeft size={ 11 }/>
-          </Flex>
-          <Text data-testid="strict-address-page-label" color="gray.300" fontSize="sm">{ pagination.pageLabel }</Text>
-          <Flex
-            as="button"
-            data-testid="strict-address-next-page"
-            aria-label="Next address transactions page"
-            aria-disabled={ !pagination.canGoNext }
-            boxSize="34px"
+            <Grid
+              px={ 5 }
+              py={ 3 }
+              borderBottomWidth="1px"
+              borderBottomColor={ borderColor }
+              bgColor="rgba(255, 255, 255, 0.05)"
+              gridTemplateColumns="1fr 0.78fr 0.62fr 0.74fr 0.8fr 0.8fr 0.68fr 0.62fr"
+              columnGap={ 3 }
+              fontSize="xs"
+              letterSpacing="wider"
+              color="rgba(255, 255, 255, 0.65)"
+            >
+              <Text>TXN HASH</Text>
+              <Text>METHOD</Text>
+              <Text>BLOCK</Text>
+              <Text>AGE</Text>
+              <Text>FROM</Text>
+              <Text>TO</Text>
+              <Text>VALUE</Text>
+              <Text>TXN FEE</Text>
+            </Grid>
+
+            <VStack alignItems="stretch" gap={ 0 }>
+              { txRows.map((row) => (
+                <Grid
+                  key={ row.id }
+                  px={ 5 }
+                  py={ 4 }
+                  borderBottomWidth="1px"
+                  borderBottomColor={ borderColor }
+                  gridTemplateColumns="1fr 0.78fr 0.62fr 0.74fr 0.8fr 0.8fr 0.68fr 0.62fr"
+                  columnGap={ 3 }
+                  alignItems="center"
+                  fontSize="sm"
+                >
+                  <Link noIcon href={ row.txHref } data-testid="strict-address-row-hash-link" color="seth.primary" fontWeight={ 500 } fontFamily="mono">{ row.hash }</Link>
+                  <Text
+                    color="gray.200"
+                    bgColor="rgba(31, 41, 55, 0.65)"
+                    borderWidth="1px"
+                    borderColor="rgba(75, 85, 99, 0.8)"
+                    borderRadius="md"
+                    px={ 2 }
+                    py={ 1 }
+                    width="fit-content"
+                    fontSize="xs"
+                    fontWeight={ 500 }
+                  >
+                    { row.method }
+                  </Text>
+                  { row.blockHref ? <Link noIcon href={ row.blockHref } color={ secondaryLinkColor }>{ row.block }</Link> : <Text color={ secondaryLinkColor }>{ row.block }</Text> }
+                  <Text color="gray.400">{ row.age }</Text>
+                  <HStack gap={ 2 }>
+                    { row.fromYou ? (
+                      <Text
+                        px={ 2 }
+                        py={ 0.5 }
+                        borderRadius="md"
+                        bgColor="rgba(0, 255, 163, 0.2)"
+                        borderWidth="1px"
+                        borderColor="rgba(0, 255, 163, 0.3)"
+                        color="seth.primary"
+                        fontFamily="mono"
+                      >
+                        { row.from }
+                      </Text>
+                    ) : (
+                      row.fromHref ? <Link noIcon href={ row.fromHref } color={ secondaryLinkColor } fontFamily="mono">{ row.from }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ row.from }</Text>
+                    ) }
+                    { row.fromYou && <Text color="gray.500" fontSize="xs">(You)</Text> }
+                  </HStack>
+                  <HStack gap={ 2 }>
+                    { row.toYou ? (
+                      <Text
+                        px={ 2 }
+                        py={ 0.5 }
+                        borderRadius="md"
+                        bgColor="rgba(0, 255, 163, 0.2)"
+                        borderWidth="1px"
+                        borderColor="rgba(0, 255, 163, 0.3)"
+                        color="seth.primary"
+                        fontFamily="mono"
+                      >
+                        { row.to }
+                      </Text>
+                    ) : (
+                      row.toHref ? <Link noIcon href={ row.toHref } color={ secondaryLinkColor } fontFamily="mono">{ row.to }</Link> : <Text color={ secondaryLinkColor } fontFamily="mono">{ row.to }</Text>
+                    ) }
+                    { row.toYou && <Text color="gray.500" fontSize="xs">(You)</Text> }
+                  </HStack>
+                  <Text color="gray.100" fontWeight={ 500 }>{ row.value }</Text>
+                  <Text color="gray.400" fontSize="xs">{ row.fee }</Text>
+                </Grid>
+              )) }
+            </VStack>
+          </Box>
+
+          { pagination && (
+            <Flex mt={ 4 } alignItems="center" justifyContent="flex-end" gap={ 3 }>
+              <Flex
+                as="button"
+                data-testid="strict-address-prev-page"
+                aria-label="Previous address transactions page"
+                aria-disabled={ !pagination.canGoPrev }
+                boxSize="34px"
+                borderWidth="1px"
+                borderColor={ borderColor }
+                borderRadius="lg"
+                alignItems="center"
+                justifyContent="center"
+                color="gray.400"
+                bgColor="rgba(4, 6, 8, 0.75)"
+                opacity={ pagination.canGoPrev ? 1 : 0.5 }
+                cursor={ pagination.canGoPrev ? 'pointer' : 'not-allowed' }
+                onClick={ pagination.canGoPrev ? pagination.onPrev : undefined }
+              >
+                <FaChevronLeft size={ 11 }/>
+              </Flex>
+              <Text data-testid="strict-address-page-label" color="gray.300" fontSize="sm">{ pagination.pageLabel }</Text>
+              <Flex
+                as="button"
+                data-testid="strict-address-next-page"
+                aria-label="Next address transactions page"
+                aria-disabled={ !pagination.canGoNext }
+                boxSize="34px"
+                borderWidth="1px"
+                borderColor={ borderColor }
+                borderRadius="lg"
+                alignItems="center"
+                justifyContent="center"
+                color="gray.400"
+                bgColor="rgba(4, 6, 8, 0.75)"
+                opacity={ pagination.canGoNext ? 1 : 0.5 }
+                cursor={ pagination.canGoNext ? 'pointer' : 'not-allowed' }
+                onClick={ pagination.canGoNext ? pagination.onNext : undefined }
+              >
+                <FaChevronRight size={ 11 }/>
+              </Flex>
+            </Flex>
+          ) }
+        </>
+      ) : (
+        <Flex
+          className="seth-panel seth-panel-hover seth-fade-in-up"
+          style={{ '--seth-index': 2 } as React.CSSProperties}
+          borderWidth="1px"
+          borderColor={ borderColor }
+          borderRadius="xl"
+          px={ 6 }
+          py={ 8 }
+          alignItems="center"
+          justifyContent="space-between"
+          gap={ 6 }
+        >
+          <Box>
+            <Text fontSize="lg" fontWeight={ 600 } color="gray.100" mb={ 2 }>
+              { tabs.find((tab) => tab.id === activeTab)?.label }
+            </Text>
+            <Text color="gray.400" fontSize="sm">
+              { tabPanelLinks[activeTab as Exclude<StrictAddressTabId, 'transactions'>].description }
+            </Text>
+          </Box>
+          <Link
+            noIcon
+            href={ tabPanelLinks[activeTab as Exclude<StrictAddressTabId, 'transactions'>].href }
+            color="seth.primary"
+            fontWeight={ 600 }
             borderWidth="1px"
-            borderColor={ borderColor }
+            borderColor="rgba(0, 255, 148, 0.35)"
             borderRadius="lg"
-            alignItems="center"
-            justifyContent="center"
-            color="gray.400"
-            bgColor="rgba(4, 6, 8, 0.75)"
-            opacity={ pagination.canGoNext ? 1 : 0.5 }
-            cursor={ pagination.canGoNext ? 'pointer' : 'not-allowed' }
-            onClick={ pagination.canGoNext ? pagination.onNext : undefined }
+            px={ 4 }
+            py={ 2 }
+            _hover={{ textDecoration: 'none', borderColor: 'seth.primary', bgColor: 'rgba(0, 255, 148, 0.08)' }}
           >
-            <FaChevronRight size={ 11 }/>
-          </Flex>
+            { tabPanelLinks[activeTab as Exclude<StrictAddressTabId, 'transactions'>].cta }
+          </Link>
         </Flex>
       ) }
     </Box>

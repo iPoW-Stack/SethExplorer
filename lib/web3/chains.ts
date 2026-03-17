@@ -24,7 +24,7 @@ const getChainInfo = (config: Partial<typeof appConfig> = appConfig, contracts?:
     },
     blockExplorers: {
       'default': {
-        name: 'Blockscout',
+        name: 'Seth Explorer',
         url: config.app.baseUrl,
       },
     },
@@ -59,7 +59,7 @@ export const parentChain: Chain | undefined = (() => {
     },
     blockExplorers: {
       'default': {
-        name: 'Blockscout',
+        name: 'Seth Explorer',
         url: parentChain.baseUrl,
       },
     },

@@ -111,15 +111,15 @@ export default function ActivityTab() {
   const tasks = useMemo(() => (
     [
       {
-        title: 'Blockscout activity',
+        title: 'Seth Explorer activity',
         description: (
           <>
-            Use Blockscout tools like{ ' ' }
+            Use Seth Explorer tools like{ ' ' }
             <Link
               external={ !marketplaceFeature?.essentialDapps }
               href={ marketplaceFeature?.essentialDapps ?
                 route({ pathname: '/apps' }) :
-                'https://eth.blockscout.com/apps?utm_source=blockscout&utm_medium=transactions-task'
+                'https://explorer.seth.app/apps'
               }
             >
               Essential dapps
@@ -144,7 +144,7 @@ export default function ActivityTab() {
             <Link href={ route({ pathname: '/contract-verification' }) }>
               verify a smart contract
             </Link>{ ' ' }
-            on the Blockscout explorer to earn Merits.
+            on Seth Explorer to earn Merits.
           </>
         ),
         percentile: activities.contracts?.percentile,
@@ -154,11 +154,11 @@ export default function ActivityTab() {
         maxAmount: getMaxAmount(rewardsConfigQuery.data?.rewards?.verified_contracts_activity_rewards),
       },
       {
-        title: 'Blockscout usage',
+        title: 'Seth Explorer usage',
         description: (
           <>
-            Use Blockscout explorers in your daily routine { mdash } check transactions, explore addresses,
-            or add tokens/networks to MetaMask via Blockscout.
+            Use Seth Explorer in your daily routine { mdash } check transactions, explore addresses,
+            or add tokens/networks to MetaMask via Seth Explorer.
           </>
         ),
         percentile: activities.usage?.percentile,
@@ -220,7 +220,7 @@ export default function ActivityTab() {
           <Flex flexDirection="column" p={{ base: 1.5, md: 0 }} pb={ 0 }>
             <Heading level="3" mb={ 2 }>Your activity</Heading>
             <Text textStyle="sm" mb={{ base: 2, md: 4 }}>
-              Use Blockscout and related products daily to earn Merits. Check each task for details and how to get started.
+              Use Seth Explorer and related products daily to earn Merits. Check each task for details and how to get started.
             </Text>
             <Flex alignItems="center" gap={ 3 } mb={{ base: 0, md: 4 }}>
               <Button
@@ -231,7 +231,7 @@ export default function ActivityTab() {
               </Button>
               <Link
                 external
-                href="https://docs.blockscout.com/using-blockscout/merits/activity-pass"
+                href="https://seth.app/merits/activity-pass"
                 fontSize="md"
                 fontWeight="500"
                 textAlign="center"
@@ -357,8 +357,8 @@ export default function ActivityTab() {
             <Text textStyle="xs" color="text.secondary" fontWeight="500">
               Metrics are not updated in real time. Please allow up to one hour for your Performance Rank and earned Merits to reflect recent activity.
               If you experience any issues, feel free to reach out on{ ' ' }
-              <Link external href="https://discord.gg/blockscout">
-                Discord
+              <Link external href="mailto:support@seth.app">
+                support@seth.app
               </Link>
             </Text>
           </Flex>

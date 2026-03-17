@@ -5,7 +5,14 @@ const baseUrl = (process.env.PROD_BASE_URL || process.env.E2E_BASE_URL || 'https
 const timeoutMs = Number(process.env.PROD_CHECK_TIMEOUT_MS || 20_000);
 const maxLagSeconds = Number(process.env.PROD_MAX_LAG_SECONDS || 300);
 const maxHeadDiff = Number(process.env.PROD_MAX_HEAD_DIFF || 2);
+const maxLiveHeadLagSeconds = Number(process.env.PROD_MAX_LIVE_HEAD_LAG_SECONDS || 120);
 const requireRootIndexed = process.env.REQUIRE_ROOT_INDEXED === 'true';
+const requireLiveHead = process.env.PROD_REQUIRE_LIVE_HEAD !== 'false';
+const allowChainPause = process.env.PROD_ALLOW_CHAIN_PAUSE === 'true' || process.argv.includes('--allow-chain-pause');
+const crossSourceRetries = Number(process.env.PROD_CROSS_SOURCE_RETRIES || 2);
+const crossSourceRetryDelayMs = Number(process.env.PROD_CROSS_SOURCE_RETRY_DELAY_MS || 2_000);
+const liveHeadPath = process.env.PROD_LIVE_HEAD_PATH || '/api/v2/seth/live-head';
+const fallbackHeadPath = process.env.PROD_FALLBACK_HEAD_PATH || '/api?module=block&action=eth_block_number';
 const outputDir = path.resolve(process.cwd(), 'qa-artifacts', 'prod-checks');
 
 async function fetchJson(relativeUrl) {
@@ -29,10 +36,31 @@ async function fetchJson(relativeUrl) {
   }
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function parseTime(value) {
   if (!value || typeof value !== 'string') return null;
   const milliseconds = Date.parse(value);
   return Number.isNaN(milliseconds) ? null : milliseconds;
+}
+
+function parseBlockNumber(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value !== 'string' || !value.trim()) {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  const parsed = normalized.startsWith('0x') ?
+    Number.parseInt(normalized.slice(2), 16) :
+    Number.parseInt(normalized, 10);
+
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 const now = new Date();
@@ -43,7 +71,14 @@ const report = {
   thresholds: {
     maxLagSeconds,
     maxHeadDiff,
+    maxLiveHeadLagSeconds,
     requireRootIndexed,
+    requireLiveHead,
+    allowChainPause,
+    crossSourceRetries,
+    crossSourceRetryDelayMs,
+    liveHeadPath,
+    fallbackHeadPath,
   },
   checks: {},
   errors: [],
@@ -51,10 +86,12 @@ const report = {
 };
 
 try {
-  const [ stats, mainBlocks, blocksList ] = await Promise.all([
+  const [ stats, mainBlocks, blocksList, liveHeadResult, fallbackHeadResult ] = await Promise.all([
     fetchJson('/api/v2/stats'),
     fetchJson('/api/v2/main-page/blocks'),
     fetchJson('/api/v2/blocks?type=block&items_count=5'),
+    fetchJson(liveHeadPath).catch((error) => ({ __error: error instanceof Error ? error.message : String(error) })),
+    fetchJson(fallbackHeadPath).catch((error) => ({ __error: error instanceof Error ? error.message : String(error) })),
   ]);
 
   const sethShards = Array.isArray(stats?.seth_shards) ? stats.seth_shards : [];
@@ -136,14 +173,168 @@ try {
     }
   }
 
+  const liveHead = liveHeadResult && !liveHeadResult.__error ? liveHeadResult : null;
+  const fallbackHead = fallbackHeadResult && !fallbackHeadResult.__error ?
+    parseBlockNumber(fallbackHeadResult?.result) :
+    null;
+
+  report.checks.fallbackHead = {
+    height: fallbackHead,
+    error: fallbackHeadResult?.__error || null,
+  };
+
+  let liveHeadFreshnessLagSeconds = null;
+  let mainHeadFreshnessLagSeconds = null;
+  let liveHeadHeight = null;
+  let liveHeadLagBlocks = null;
+  let liveHeadSourceState = null;
+  let liveHeadTimestamp = null;
+
+  if (!liveHead) {
+    const errorMessage = liveHeadResult?.__error || `live head endpoint ${ liveHeadPath } is unavailable`;
+    if (requireLiveHead) {
+      report.errors.push(errorMessage);
+    } else {
+      report.warnings.push(errorMessage);
+    }
+  } else {
+    liveHeadHeight = typeof liveHead?.global_head?.height === 'number' ? liveHead.global_head.height : null;
+    liveHeadTimestamp = parseTime(liveHead?.global_head?.timestamp);
+    const liveHeadLagSeconds = typeof liveHead?.lag?.seconds === 'number' ? liveHead.lag.seconds : null;
+    liveHeadLagBlocks = typeof liveHead?.lag?.blocks === 'number' ? liveHead.lag.blocks : null;
+    liveHeadSourceState = typeof liveHead?.source_state === 'string' ? liveHead.source_state : null;
+
+    report.checks.liveHead = {
+      sourceState: liveHeadSourceState,
+      height: liveHeadHeight,
+      lagBlocks: liveHeadLagBlocks,
+      lagSeconds: liveHeadLagSeconds,
+      timestamp: liveHead?.global_head?.timestamp ?? null,
+    };
+
+    if (liveHeadHeight === null) {
+      report.errors.push('live_head.global_head.height is missing');
+    }
+
+    if (liveHeadLagSeconds !== null && liveHeadLagSeconds > maxLiveHeadLagSeconds) {
+      report.errors.push(`live_head.lag.seconds too large: ${ liveHeadLagSeconds }s > ${ maxLiveHeadLagSeconds }s`);
+    }
+
+    const getCrossSourceDiff = (nextMainHeight, nextListHeight, nextShard3Height, nextLiveHeadHeight) => {
+      const knownHeights = [ nextMainHeight, nextListHeight, nextShard3Height, nextLiveHeadHeight ].filter((value) => typeof value === 'number');
+      if (knownHeights.length < 2) {
+        return null;
+      }
+
+      const maxHeight = Math.max(...knownHeights);
+      const minHeight = Math.min(...knownHeights);
+      return maxHeight - minHeight;
+    };
+
+    const initialDiff = getCrossSourceDiff(mainHeight, listHeight, shard3Height, liveHeadHeight);
+    if (initialDiff !== null) {
+      report.checks.heights.maxCrossSourceDiff = initialDiff;
+      if (initialDiff > maxHeadDiff) {
+        const samples = [ initialDiff ];
+
+        for (let attempt = 1; attempt <= crossSourceRetries; attempt += 1) {
+          // eslint-disable-next-line no-await-in-loop
+          await sleep(crossSourceRetryDelayMs);
+          // eslint-disable-next-line no-await-in-loop
+          const [ retryStats, retryMainBlocks, retryBlocksList, retryLiveHeadResult ] = await Promise.all([
+            fetchJson('/api/v2/stats').catch(() => null),
+            fetchJson('/api/v2/main-page/blocks').catch(() => null),
+            fetchJson('/api/v2/blocks?type=block&items_count=5').catch(() => null),
+            fetchJson(liveHeadPath).catch(() => null),
+          ]);
+
+          const retryShard3 = Array.isArray(retryStats?.seth_shards) ? retryStats.seth_shards.find((item) => item?.name === 'shard3') : null;
+          const retryMainHeight = Array.isArray(retryMainBlocks) && retryMainBlocks.length > 0 ? retryMainBlocks[0]?.height : null;
+          const retryListHeight = Array.isArray(retryBlocksList?.items) && retryBlocksList.items.length > 0 ? retryBlocksList.items[0]?.height : null;
+          const retryShard3Height = typeof retryShard3?.latest_height === 'number' ? retryShard3.latest_height : null;
+          const retryLiveHeadHeight = typeof retryLiveHeadResult?.global_head?.height === 'number' ? retryLiveHeadResult.global_head.height : null;
+          const retryDiff = getCrossSourceDiff(retryMainHeight, retryListHeight, retryShard3Height, retryLiveHeadHeight);
+
+          if (retryDiff !== null) {
+            samples.push(retryDiff);
+          }
+        }
+
+        report.checks.heights.maxCrossSourceDiffSamples = samples;
+
+        const minSample = Math.min(...samples);
+        if (minSample > maxHeadDiff) {
+          report.errors.push(`main/list/stats/live head diff too large: ${ initialDiff }`);
+        } else {
+          report.warnings.push(`transient cross-source diff observed: samples=${ samples.join(',') }`);
+        }
+      }
+    }
+
+    if (liveHeadHeight !== null && mainHeight !== null && liveHeadHeight < mainHeight) {
+      report.errors.push(`live head is behind indexer main head: live=${ liveHeadHeight }, main=${ mainHeight }`);
+    }
+
+    if (liveHeadTimestamp !== null) {
+      liveHeadFreshnessLagSeconds = Math.floor((Date.now() - liveHeadTimestamp) / 1000);
+      report.checks.liveHead.freshnessLagSeconds = liveHeadFreshnessLagSeconds;
+      if (liveHeadFreshnessLagSeconds > maxLiveHeadLagSeconds) {
+        report.errors.push(`live head timestamp lag too large: ${ liveHeadFreshnessLagSeconds }s > ${ maxLiveHeadLagSeconds }s`);
+      }
+    }
+  }
+
+  if (fallbackHead !== null && mainHeight !== null && fallbackHead < mainHeight) {
+    report.errors.push(`fallback head is behind indexer main head: fallback=${ fallbackHead }, main=${ mainHeight }`);
+  }
+
+  if (fallbackHead !== null && liveHead && typeof liveHead?.global_head?.height === 'number') {
+    const liveHeadHeight = liveHead.global_head.height;
+    if (fallbackHead > liveHeadHeight + maxHeadDiff) {
+      report.errors.push(`fallback head and live head diff too large: fallback=${ fallbackHead }, live=${ liveHeadHeight }`);
+    }
+  }
+
   if (mainTimestamp === null) {
     report.errors.push('top block timestamp is missing or invalid');
   } else {
-    const lagSeconds = Math.floor((Date.now() - mainTimestamp) / 1000);
-    report.checks.freshness = { lagSeconds };
-    if (lagSeconds > maxLagSeconds) {
-      report.errors.push(`head timestamp lag too large: ${ lagSeconds }s > ${ maxLagSeconds }s`);
+    mainHeadFreshnessLagSeconds = Math.floor((Date.now() - mainTimestamp) / 1000);
+    report.checks.freshness = { lagSeconds: mainHeadFreshnessLagSeconds };
+    if (mainHeadFreshnessLagSeconds > maxLagSeconds) {
+      report.errors.push(`head timestamp lag too large: ${ mainHeadFreshnessLagSeconds }s > ${ maxLagSeconds }s`);
     }
+  }
+
+  const maintenanceSuspected = Boolean(
+    allowChainPause &&
+    liveHead &&
+    typeof mainHeight === 'number' &&
+    typeof liveHeadHeight === 'number' &&
+    mainHeight === liveHeadHeight &&
+    (liveHeadLagBlocks === 0 || liveHeadLagBlocks === null) &&
+    typeof mainHeadFreshnessLagSeconds === 'number' &&
+    typeof liveHeadFreshnessLagSeconds === 'number' &&
+    mainHeadFreshnessLagSeconds > maxLiveHeadLagSeconds &&
+    liveHeadFreshnessLagSeconds > maxLiveHeadLagSeconds &&
+    (liveHeadSourceState === 'ok' || liveHeadSourceState === 'degraded')
+  );
+
+  report.checks.maintenanceSuspected = maintenanceSuspected;
+
+  if (maintenanceSuspected) {
+    const retainedErrors = [];
+    for (const errorMessage of report.errors) {
+      if (
+        errorMessage.startsWith('live head timestamp lag too large') ||
+        errorMessage.startsWith('head timestamp lag too large')
+      ) {
+        report.warnings.push(`${ errorMessage } (downgraded: chain pause mode)`);
+      } else {
+        retainedErrors.push(errorMessage);
+      }
+    }
+    report.errors = retainedErrors;
+    report.warnings.push('chain pause mode enabled: timestamp freshness errors are downgraded while chain production is paused');
   }
 } catch (error) {
   report.errors.push(error instanceof Error ? error.message : String(error));

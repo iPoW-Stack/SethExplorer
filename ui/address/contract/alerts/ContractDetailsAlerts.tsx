@@ -61,7 +61,7 @@ const ContractDetailsAlerts = ({ data, isLoading, addressData, channel }: Props)
       ) }
       { !data?.is_verified && data?.verified_twin_address_hash && (!addressData.proxy_type || addressData.proxy_type === 'unknown') && (
         <Alert status="warning" whiteSpace="pre-wrap">
-          <span>Contract is not verified. However, we found a verified contract with the same bytecode in Blockscout DB </span>
+          <span>Contract is not verified. However, we found a verified contract with the same bytecode in the Seth Explorer index </span>
           <AddressEntity
             address={{ hash: data.verified_twin_address_hash, filecoin: { robust: data.verified_twin_filecoin_robust_address }, is_contract: true }}
             truncation="constant"

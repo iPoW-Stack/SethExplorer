@@ -11,6 +11,7 @@ import useApiQuery from 'lib/api/useApiQuery';
 import useFetch from 'lib/hooks/useFetch';
 import useIssueUrl from 'lib/hooks/useIssueUrl';
 import useSethStrict from 'lib/settings/useSethStrict';
+import { Image } from 'toolkit/chakra/image';
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { copy } from 'toolkit/utils/htmlEntities';
@@ -24,8 +25,23 @@ import getApiVersionUrl from './utils/getApiVersionUrl';
 
 const MAX_LINKS_COLUMNS = 4;
 
-const FRONT_VERSION_URL = `https://github.com/blockscout/frontend/tree/${ config.UI.footer.frontendVersion }`;
-const FRONT_COMMIT_URL = `https://github.com/blockscout/frontend/commit/${ config.UI.footer.frontendCommit }`;
+const SETH_REPO_URL = 'https://github.com/iPoW-Stack/SethExplorer';
+const SETH_SITE_URL = 'https://seth.app';
+
+const FRONT_VERSION_URL = `${ SETH_REPO_URL }/tree/${ config.UI.footer.frontendVersion }`;
+const FRONT_COMMIT_URL = `${ SETH_REPO_URL }/commit/${ config.UI.footer.frontendCommit }`;
+
+function sanitizeBrandText(value: string) {
+  return value.replace(/blockscout/gi, 'Seth Explorer');
+}
+
+function sanitizeBrandUrl(url: string) {
+  return url
+    .replace(/https?:\/\/(www\.)?blockscout\.com/gi, SETH_SITE_URL)
+    .replace(/https?:\/\/eth\.blockscout\.com/gi, 'https://explorer.seth.app')
+    .replace(/https?:\/\/github\.com\/blockscout\/frontend/gi, SETH_REPO_URL)
+    .replace(/https?:\/\/github\.com\/blockscout\/blockscout/gi, SETH_REPO_URL);
+}
 
 const Footer = () => {
   const isSethStrict = useSethStrict();
@@ -39,7 +55,7 @@ const Footer = () => {
   const apiVersionUrl = getApiVersionUrl(backendVersionData?.backend_version);
   const issueUrl = useIssueUrl(backendVersionData?.backend_version);
 
-  const BLOCKSCOUT_LINKS = [
+  const SETH_LINKS = [
     {
       icon: 'edit' as const,
       iconSize: '16px',
@@ -49,32 +65,26 @@ const Footer = () => {
     {
       icon: 'social/git' as const,
       iconSize: '18px',
-      text: 'Contribute',
-      url: 'https://github.com/blockscout/blockscout',
+      text: 'Source code',
+      url: SETH_REPO_URL,
     },
     {
       icon: 'social/twitter' as const,
       iconSize: '18px',
-      text: 'X (ex-Twitter)',
-      url: 'https://x.com/blockscout',
+      text: 'Seth website',
+      url: SETH_SITE_URL,
     },
     {
-      icon: 'social/discord' as const,
-      iconSize: '24px',
-      text: 'Discord',
-      url: 'https://discord.gg/blockscout',
-    },
-    {
-      icon: 'brands/blockscout' as const,
+      icon: 'API' as const,
       iconSize: '18px',
-      text: 'All chains',
-      url: 'https://www.blockscout.com/chains-and-projects',
+      text: 'API docs',
+      url: `${ SETH_SITE_URL }/api`,
     },
     {
       icon: 'donate' as const,
       iconSize: '20px',
-      text: 'Donate',
-      url: 'https://eth.blockscout.com/address/0xfB4aF6A8592041E9BcE186E5aC4BDbd2B137aD11',
+      text: 'Explorer status',
+      url: 'https://explorer.seth.app/stats',
     },
   ];
 
@@ -99,6 +109,22 @@ const Footer = () => {
     staleTime: Infinity,
     placeholderData: [],
   });
+
+  const sanitizedLinksData = React.useMemo(() => {
+    if (!linksData) {
+      return [];
+    }
+
+    return linksData.map((group) => ({
+      ...group,
+      title: sanitizeBrandText(group.title),
+      links: group.links.map((link) => ({
+        ...link,
+        text: sanitizeBrandText(link.text),
+        url: sanitizeBrandUrl(link.url),
+      })),
+    }));
+  }, [ linksData ]);
 
   const colNum = isPlaceholderData ? 1 : Math.min(linksData?.length || Infinity, MAX_LINKS_COLUMNS) + 1;
 
@@ -127,16 +153,15 @@ const Footer = () => {
       <Box gridArea={ gridArea }>
         <Flex columnGap={ 2 } textStyle="xs" alignItems="center">
           <span>Made with</span>
-          <Link href="https://www.blockscout.com" external noIcon display="inline-flex" color={ logoColor } _hover={{ color: logoColor }}>
-            <IconSvg
-              name="networks/logo-placeholder"
-              width="80px"
-              height={ 4 }
-            />
+          <Link href={ SETH_SITE_URL } external noIcon display="inline-flex" color={ logoColor } _hover={{ color: logoColor }}>
+            <Flex alignItems="center" gap={ 2 }>
+              <Image src="/assets/seth-logo.png" alt="Seth logo" boxSize="20px"/>
+              <Text fontWeight={ 700 } color={ logoColor }>Seth</Text>
+            </Flex>
           </Link>
         </Flex>
         <Text mt={ 3 } fontSize="xs">
-          Blockscout is a tool for inspecting and analyzing EVM based blockchains. Blockchain explorer for Ethereum Networks.
+          Seth Explorer provides a real-time view of the Seth network: blocks, transactions, addresses, tokens, and API data.
         </Text>
         <Box mt={ 6 } alignItems="start" textStyle="xs">
           { apiVersionUrl && (
@@ -150,7 +175,7 @@ const Footer = () => {
             </Text>
           ) }
           <Text>
-            Copyright { copy } Blockscout Limited 2023-{ (new Date()).getFullYear() }
+            Copyright { copy } Seth Explorer 2023-{ (new Date()).getFullYear() }
           </Text>
         </Box>
       </Box>
@@ -183,8 +208,8 @@ const Footer = () => {
           fontSize="sm"
         >
           <Flex alignItems="center" justifyContent="center" gap={ 6 }>
-            <Link href="https://www.blockscout.com/terms-of-service" external noIcon color="gray.500" _hover={{ color: 'seth.primary' }}>Terms</Link>
-            <Link href="https://www.blockscout.com/privacy-policy" external noIcon color="gray.500" _hover={{ color: 'seth.primary' }}>Privacy</Link>
+            <Link href="https://seth.app/terms" external noIcon color="gray.500" _hover={{ color: 'seth.primary' }}>Terms</Link>
+            <Link href="https://seth.app/privacy" external noIcon color="gray.500" _hover={{ color: 'seth.primary' }}>Privacy</Link>
             <Link href="/api-docs" noIcon color="gray.500" _hover={{ color: 'seth.primary' }}>API</Link>
           </Flex>
           <Flex alignItems="center" justifyContent="center" gap={ 1 } color="gray.500">
@@ -245,15 +270,15 @@ const Footer = () => {
           >
             {
               ([
-                { title: 'Blockscout', links: BLOCKSCOUT_LINKS },
-                ...(linksData || []),
+                { title: 'Seth Explorer', links: SETH_LINKS },
+                ...sanitizedLinksData,
               ])
                 .slice(0, colNum)
                 .map(linkGroup => (
                   <Box key={ linkGroup.title }>
                     <Skeleton fontWeight={ 500 } mb={ 3 } display="inline-block" loading={ isPlaceholderData }>{ linkGroup.title }</Skeleton>
                     <VStack gap={ 1 } alignItems="start">
-                      { linkGroup.links.map(link => <FooterLinkItem { ...link } key={ link.text } isLoading={ isPlaceholderData }/>) }
+                      { linkGroup.links.map(link => <FooterLinkItem { ...link } key={ `${ link.text }-${ link.url }` } isLoading={ isPlaceholderData }/>) }
                     </VStack>
                   </Box>
                 ))
@@ -299,7 +324,7 @@ const Footer = () => {
           justifyContent={{ lg: 'flex-end' }}
           mt={{ base: 8, lg: 0 }}
         >
-          { BLOCKSCOUT_LINKS.map(link => <FooterLinkItem { ...link } key={ link.text }/>) }
+          { SETH_LINKS.map(link => <FooterLinkItem { ...link } key={ link.text }/>) }
         </Grid>
       </Grid>
     </Box>

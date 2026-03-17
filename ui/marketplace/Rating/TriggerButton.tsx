@@ -21,7 +21,7 @@ interface Props extends ButtonProps {
 
 const getTooltipText = (canRate: boolean) => {
   if (!canRate) {
-    return <>Please log in to Blockscout to rate this { (getFeaturePayload(config.features.marketplace)?.titles.entity_name ?? '').toLowerCase() }.</>;
+    return <>Please log in to Seth Explorer to rate this { (getFeaturePayload(config.features.marketplace)?.titles.entity_name ?? '').toLowerCase() }.</>;
   }
   return <>Ratings come from verified users.<br/>Click here to rate!</>;
 };

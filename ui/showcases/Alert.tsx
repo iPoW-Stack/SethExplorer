@@ -119,14 +119,14 @@ const AlertShowcase = () => {
           <Sample label="multiple lines, with title, inline=false">
             <Alert status="warning" title="Warning" inline={ false } maxWidth="500px" showIcon closable>
               <Box>
-                Participated in our recent Blockscout activities? Check your eligibility and claim your NFT Scout badges. More exciting things are coming soon!
+                Participated in our recent Seth activities? Check your eligibility and claim your NFT Scout badges. More exciting things are coming soon!
               </Box>
             </Alert>
           </Sample>
           <Sample label="multiple lines, no title">
             <Alert status="warning" maxWidth="500px">
               <Box>
-                Participated in our recent Blockscout activities? Check your eligibility and claim your NFT Scout badges. More exciting things are coming soon!
+                Participated in our recent Seth activities? Check your eligibility and claim your NFT Scout badges. More exciting things are coming soon!
               </Box>
             </Alert>
           </Sample>

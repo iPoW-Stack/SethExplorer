@@ -47,13 +47,13 @@ const AuthModalScreenSuccessWallet = ({ address, onAddEmail, onClose, isAuth, pr
       <Text>
         Wallet{ ' ' }
         <chakra.span fontWeight="700">{ shortenString(address) }</chakra.span>{ ' ' }
-        has been successfully used to log in to your Blockscout account
+        has been successfully used to log in to your Seth Explorer account
         { Boolean(rewardsToken) && ` and Merits Program` }.
       </Text>
       { !profile?.email ? (
         <>
           <Text mt={ 6 }>
-            Add your email to receive exclusive updates about Blockscout { config.features.rewards.isEnabled ? 'Merits ' : ' ' }
+            Add your email to receive exclusive updates about Seth Explorer { config.features.rewards.isEnabled ? 'Merits ' : ' ' }
             and notifications about addresses in your watch list.
           </Text>
           <Flex mt={ 6 } gap={ 6 }>

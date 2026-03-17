@@ -6,6 +6,7 @@ import type { StatsIntervalIds } from 'types/client/stats';
 import type { ResourceError } from 'lib/api/resources';
 import useApiQuery from 'lib/api/useApiQuery';
 import { useAppContext } from 'lib/contexts/app';
+import { isStatsServiceEnabled } from 'lib/settings/useSethStrict';
 import { STATS_INTERVALS } from 'ui/stats/constants';
 import {
   FALLBACK_DAILY_TX_CHART_ID,
@@ -20,6 +21,7 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
   const { apiData } = useAppContext<'/stats/[id]'>();
 
   const selectedInterval = STATS_INTERVALS[interval];
+  const statsServiceEnabled = isStatsServiceEnabled();
 
   const endDate = selectedInterval.start ? formatDate(new Date()) : undefined;
   const startDate = selectedInterval.start ? formatDate(selectedInterval.start) : undefined;
@@ -34,7 +36,7 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
       resolution,
     },
     queryOptions: {
-      enabled: enabled && Boolean(id),
+      enabled: enabled && Boolean(id) && statsServiceEnabled,
       refetchOnMount: false,
       refetchInterval: enabled ? CHART_LIVE_REFRESH_MS : false,
       refetchIntervalInBackground: true,
@@ -52,7 +54,7 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
   });
   const fallbackDailyTxsQuery = useApiQuery('general:stats_charts_txs', {
     queryOptions: {
-      enabled: enabled && Boolean(id) && id === FALLBACK_DAILY_TX_CHART_ID && lineQuery.isError,
+      enabled: enabled && Boolean(id) && id === FALLBACK_DAILY_TX_CHART_ID && (!statsServiceEnabled || lineQuery.isError),
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       refetchInterval: enabled ? CHART_LIVE_REFRESH_MS : false,
@@ -63,13 +65,17 @@ export default function useChartQuery(id: string, resolution: Resolution, interv
 
   const fallbackData = mapTransactionsChartToLineChart(fallbackDailyTxsQuery.data);
   const isFallbackCandidate = id === FALLBACK_DAILY_TX_CHART_ID;
-  const isFallbackPending = lineQuery.isError && isFallbackCandidate &&
+  const isFallbackPending = (lineQuery.isError || !statsServiceEnabled) && isFallbackCandidate &&
     (fallbackDailyTxsQuery.isPending || fallbackDailyTxsQuery.isFetching || fallbackDailyTxsQuery.fetchStatus === 'fetching');
-  const isFallbackDataActive = lineQuery.isError && Boolean(fallbackData);
+  const isFallbackDataActive = (lineQuery.isError || !statsServiceEnabled) && Boolean(fallbackData);
   const data = isFallbackDataActive ? fallbackData : lineQuery.data;
-  const isError = lineQuery.isError && !isFallbackDataActive && !isFallbackPending;
-  const isPlaceholderData = lineQuery.isPlaceholderData || (lineQuery.isError && fallbackDailyTxsQuery.isPlaceholderData);
-  const isPending = lineQuery.isPending || isFallbackPending;
+  const isError = statsServiceEnabled ?
+    (lineQuery.isError && !isFallbackDataActive && !isFallbackPending) :
+    (!isFallbackDataActive && fallbackDailyTxsQuery.isError);
+  const isPlaceholderData = statsServiceEnabled ?
+    (lineQuery.isPlaceholderData || (lineQuery.isError && fallbackDailyTxsQuery.isPlaceholderData)) :
+    (isFallbackCandidate && fallbackDailyTxsQuery.isPlaceholderData);
+  const isPending = statsServiceEnabled ? (lineQuery.isPending || isFallbackPending) : isFallbackPending;
   const error = (lineQuery.error || fallbackDailyTxsQuery.error) as ResourceError | null;
 
   React.useEffect(() => {

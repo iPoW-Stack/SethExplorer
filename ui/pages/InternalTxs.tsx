@@ -8,6 +8,7 @@ import InternalTxsTable from 'ui/internalTxs/InternalTxsTable';
 import useInternalTxsQuery from 'ui/internalTxs/useInternalTxsQuery';
 import ActionBar from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
+import ExplorerEmptyState from 'ui/shared/emptyState/ExplorerEmptyState';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 
@@ -65,6 +66,16 @@ const InternalTxs = () => {
         isError={ isError }
         itemsNum={ data?.items.length }
         emptyText="There are no internal transactions."
+        emptyState={
+          <ExplorerEmptyState
+            testId="internal-txs-empty-state"
+            iconName="transactions"
+            title="No internal transactions yet"
+            description="Internal transactions appear when contracts call other contracts during execution."
+            hint="Indexing in progress can delay this table."
+            primaryAction={{ label: 'Browse Latest Blocks', href: '/blocks' }}
+          />
+        }
         hasActiveFilters={ Boolean(debouncedSearchTerm) }
         emptyStateProps={{
           term: 'internal transaction',

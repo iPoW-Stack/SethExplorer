@@ -1,4 +1,5 @@
 import type { PaginationParams } from 'ui/shared/pagination/types';
+
 import type { IconName } from 'ui/shared/IconSvg';
 
 export type StrictDataMode = 'stub' | 'live';
@@ -8,6 +9,19 @@ export interface StrictDataState {
   isLoading: boolean;
   isError: boolean;
   errorMessage?: string;
+}
+
+export type StrictRealtimeStatus = 'live' | 'indexed' | 'lagging' | 'stalled';
+
+export interface StrictRealtimeState {
+  status: StrictRealtimeStatus;
+  source: 'live-head' | 'stats-fallback' | 'block-number-fallback' | 'none';
+  label: string;
+  headHeight: number | null;
+  lagBlocks: number | null;
+  lagSeconds: number | null;
+  sourceState: string | null;
+  shouldUseLiveHead: boolean;
 }
 
 export interface StrictHomeStatCard {
@@ -60,9 +74,11 @@ export interface StrictBlocksRow {
 export interface StrictTxsRow {
   id: string;
   hash: string;
+  hashFull?: string;
+  status: 'ok' | 'error' | 'pending';
   txHref: string;
   method: string;
-  methodTone: 'green' | 'gray';
+  methodTone: 'green' | 'blue' | 'purple' | 'gold' | 'gray';
   block: string;
   blockHref?: string;
   age: string;
@@ -85,6 +101,7 @@ export interface StrictPaginationData {
 export interface StrictPageAdapterResult<T> extends StrictDataState {
   rows: Array<T>;
   totalLabel?: string;
+  realtime?: StrictRealtimeState;
   pagination?: StrictPaginationData;
   refetch?: () => void;
 }
@@ -111,6 +128,11 @@ export interface StrictTxOverviewRow {
   suffix?: string;
   href?: string;
   copyValue?: string;
+}
+
+export interface StrictTxGasRow {
+  label: string;
+  value: string;
 }
 
 export interface StrictAddressTxRow {

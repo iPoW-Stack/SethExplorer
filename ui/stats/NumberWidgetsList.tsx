@@ -2,18 +2,21 @@ import { Grid } from '@chakra-ui/react';
 import React from 'react';
 
 import useApiQuery from 'lib/api/useApiQuery';
+import { isStatsServiceEnabled } from 'lib/settings/useSethStrict';
 import { STATS_COUNTER } from 'stubs/stats';
 import StatsWidget from 'ui/shared/stats/StatsWidget';
 
 import DataFetchAlert from '../shared/DataFetchAlert';
 import { mapHomeStatsToCounters } from './fallbackCharts';
 
-const UNITS_WITHOUT_SPACE = [ 's' ];
+const UNITS_WITHOUT_SPACE = ['s'];
 const COUNTERS_REFRESH_INTERVAL_MS = 20_000;
 
 const NumberWidgetsList = () => {
+  const statsServiceEnabled = isStatsServiceEnabled();
   const countersQuery = useApiQuery('stats:counters', {
     queryOptions: {
+      enabled: statsServiceEnabled,
       placeholderData: { counters: Array(10).fill(STATS_COUNTER) },
       refetchInterval: COUNTERS_REFRESH_INTERVAL_MS,
       refetchIntervalInBackground: true,
@@ -21,7 +24,7 @@ const NumberWidgetsList = () => {
   });
   const fallbackStatsQuery = useApiQuery('general:stats', {
     queryOptions: {
-      enabled: countersQuery.isError,
+      enabled: !statsServiceEnabled || countersQuery.isError,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       refetchInterval: COUNTERS_REFRESH_INTERVAL_MS,
@@ -31,13 +34,17 @@ const NumberWidgetsList = () => {
   });
 
   const fallbackCounters = mapHomeStatsToCounters(fallbackStatsQuery.data);
-  const isFallbackMode = countersQuery.isError && Boolean(fallbackCounters);
+  const isFallbackMode = !statsServiceEnabled || (countersQuery.isError && Boolean(fallbackCounters));
   const data = isFallbackMode ? fallbackCounters : countersQuery.data;
-  const isPlaceholderData = countersQuery.isPlaceholderData || (countersQuery.isError && fallbackStatsQuery.isPlaceholderData);
-  const isError = countersQuery.isError && !isFallbackMode && fallbackStatsQuery.isError;
+  const isPlaceholderData = statsServiceEnabled ?
+    (countersQuery.isPlaceholderData || (countersQuery.isError && fallbackStatsQuery.isPlaceholderData)) :
+    fallbackStatsQuery.isPlaceholderData;
+  const isError = statsServiceEnabled ?
+    (countersQuery.isError && !isFallbackMode && fallbackStatsQuery.isError) :
+    !fallbackCounters && fallbackStatsQuery.isError;
 
   if (isError) {
-    return <DataFetchAlert/>;
+    return <DataFetchAlert />;
   }
 
   return (
@@ -56,16 +63,21 @@ const NumberWidgetsList = () => {
           }
 
           const valueNum = Number(value);
-          const maximumFractionDigits = valueNum < 10 ** -3 ? undefined : 3;
+          const maximumFractionDigits = valueNum < 1 ? 6 : (valueNum < 100 ? 3 : 0);
+          const formattedValue = valueNum.toLocaleString('en-US', {
+            maximumFractionDigits,
+            minimumFractionDigits: valueNum > 0 && valueNum < 1 ? 2 : 0,
+            useGrouping: true,
+          });
 
           return (
             <StatsWidget
-              key={ id + (isPlaceholderData ? index : '') }
-              label={ title }
-              value={ Number(value).toLocaleString(undefined, { maximumFractionDigits, notation: 'compact' }) }
-              valuePostfix={ unitsStr }
-              isLoading={ isPlaceholderData }
-              hint={ description }
+              key={id + (isPlaceholderData ? index : '')}
+              label={title}
+              value={formattedValue}
+              valuePostfix={unitsStr}
+              isLoading={isPlaceholderData}
+              hint={description}
             />
           );
         })

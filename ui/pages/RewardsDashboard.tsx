@@ -53,7 +53,7 @@ const RewardsDashboard = () => {
           title="Dashboard"
           secondRow={ (
             <span>
-              <Link external href={ `https://merits.blockscout.com/?tab=users&utm_source=${ config.chain.id }&utm_medium=text-banner` }>
+              <Link external href={ `https://seth.app/merits?tab=users&utm_source=${ config.chain.id }&utm_medium=text-banner` }>
                 Explore the Merits Hub
               </Link>{ ' ' }
               to earn, spend, and learn more about the program.
@@ -75,7 +75,7 @@ const RewardsDashboard = () => {
             hint={ (
               <>
                 Total number of Merits earned from all activities.{ ' ' }
-                <Link external href="https://docs.blockscout.com/using-blockscout/merits">
+                <Link external href="https://seth.app/merits">
                   More info on Merits
                 </Link>
               </>
@@ -109,7 +109,7 @@ const RewardsDashboard = () => {
             hint={ (
               <>
                 See the{ ' ' }
-                <Link external href="https://docs.blockscout.com/using-blockscout/merits/streak-rewards">docs</Link>{ ' ' }
+                <Link external href="https://seth.app/merits/streak-rewards">docs</Link>{ ' ' }
                 to learn how your streak number affects daily rewards
               </>
             ) }

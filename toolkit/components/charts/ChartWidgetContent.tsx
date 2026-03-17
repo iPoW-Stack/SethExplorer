@@ -7,7 +7,6 @@ import { Link } from '../../chakra/link';
 import { Skeleton } from '../../chakra/skeleton';
 import { apos } from '../../utils/htmlEntities';
 import { Chart } from './Chart';
-import { ChartWatermark } from './parts/ChartWatermark';
 
 export interface ChartWidgetContentProps {
   charts: TimeChartData;
@@ -81,7 +80,6 @@ export const ChartWidgetContent = React.memo(({
         resolution={ resolution }
         axesConfig={ axesConfig }
       />
-      { !noWatermark && <ChartWatermark w="162px" h="15%"/> }
     </Box>
   );
 });

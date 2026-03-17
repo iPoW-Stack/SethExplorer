@@ -67,7 +67,7 @@ const ConflictingImplementationsModal = ({ data, children }: Props) => {
             <DialogActionTrigger asChild>
               <Button>Got it, thanks</Button>
             </DialogActionTrigger>
-            <Link external noIcon href="https://discord.com/invite/blockscout">
+            <Link external noIcon href="mailto:support@seth.app">
               Contact us
             </Link>
           </HStack>

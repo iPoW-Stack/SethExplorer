@@ -13,13 +13,25 @@ interface Params {
   query?: QueryWithPagesResult<'general:txs_validated'>;
 }
 
-function getMethodTone(method?: string | null): 'green' | 'gray' {
+function getMethodTone(method?: string | null): StrictTxsRow['methodTone'] {
   if (!method) {
     return 'gray';
   }
 
   const normalized = method.toLowerCase();
-  if (normalized.includes('swap') || normalized.includes('mint') || normalized.includes('execute')) {
+  if (normalized.includes('transfer')) {
+    return 'green';
+  }
+  if (normalized.includes('approve')) {
+    return 'blue';
+  }
+  if (normalized.includes('swap')) {
+    return 'purple';
+  }
+  if (normalized.includes('mint')) {
+    return 'gold';
+  }
+  if (normalized.includes('execute')) {
     return 'green';
   }
 
@@ -38,6 +50,16 @@ function getMethodName(method?: string | null, txTypes?: Array<string>) {
   return 'transfer';
 }
 
+function getTxStatus(status: unknown): StrictTxsRow['status'] {
+  if (status === 'ok') {
+    return 'ok';
+  }
+  if (status === 'error') {
+    return 'error';
+  }
+  return 'pending';
+}
+
 export default function useStrictTransactionsData({ query }: Params): StrictPageAdapterResult<StrictTxsRow> {
   const dataSource = getSethStrictDataSource();
   const isStub = dataSource === 'stub';
@@ -50,9 +72,10 @@ export default function useStrictTransactionsData({ query }: Params): StrictPage
       rows: TXS_TABLE_ROWS.map((item) => ({
         id: item.hash,
         hash: item.hash,
+        status: getTxStatus(item.status),
         txHref: route({ pathname: '/tx/[hash]', query: { hash: '0x39a1c4b2e5d8f9a0c1b3d4e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6' } }),
         method: item.method,
-        methodTone: item.methodTone as 'green' | 'gray',
+        methodTone: getMethodTone(item.method),
         block: item.block,
         blockHref: route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: item.block } }),
         age: item.age,
@@ -88,11 +111,13 @@ export default function useStrictTransactionsData({ query }: Params): StrictPage
 
   const items = query.isPlaceholderData ? [] : (query.data?.items || []);
 
-  const rows = items.map((item, index) => {
+  const rows = items.map((item) => {
     const method = getMethodName(item.method, item.transaction_types);
     return {
-      id: `${ item.hash || 'tx' }-${ index }`,
+      id: item.hash || `${ item.block_number ?? 'na' }-${ item.timestamp ?? 'na' }`,
       hash: shortHash(item.hash),
+      hashFull: item.hash,
+      status: getTxStatus(item.status),
       txHref: route({ pathname: '/tx/[hash]', query: { hash: item.hash } }),
       method,
       methodTone: getMethodTone(method),

@@ -16,16 +16,16 @@ const FAQ_ITEMS = [
   {
     question: `How can I check ${ config.chain.name } gas fees?`,
     // eslint-disable-next-line max-len
-    answer: `You can easily check live ${ config.chain.name } gas fees on Blockscout by visiting our gas tracker. It displays current gas fees in ${ currencyUnits.gwei } for all ${ config.chain.name } transactions.`,
+    answer: `You can easily check live ${ config.chain.name } gas fees on Seth Explorer by visiting our gas tracker. It displays current gas fees in ${ currencyUnits.gwei } for all ${ config.chain.name } transactions.`,
   },
   {
     question: `What is the average gas fee for ${ config.chain.name } transactions?`,
     // eslint-disable-next-line max-len
-    answer: `The average gas fee for ${ config.chain.name } transactions depends on network congestion and transaction complexity. Blockscout provides real-time gas fee estimations to help users make informed decisions.`,
+    answer: `The average gas fee for ${ config.chain.name } transactions depends on network congestion and transaction complexity. Seth Explorer provides real-time gas fee estimations to help users make informed decisions.`,
   },
   {
-    question: 'How does Blockscout calculate gas fees?',
-    answer: 'Blockscout calculates gas fees based on the average price of gas fees spent for the last 200 blocks.',
+    question: 'How does Seth Explorer calculate gas fees?',
+    answer: 'Seth Explorer calculates gas fees based on the average price of gas fees spent for the last 200 blocks.',
   },
 ];
 

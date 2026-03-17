@@ -3,6 +3,9 @@ import path from 'node:path';
 
 const baseUrl = (process.env.PROD_BASE_URL || process.env.E2E_BASE_URL || 'https://explorer.seth.app').replace(/\/$/, '');
 const timeoutMs = Number(process.env.PROD_CHECK_TIMEOUT_MS || 20_000);
+const liveHeadPath = process.env.PROD_LIVE_HEAD_PATH || '/api/v2/seth/live-head';
+const fallbackHeadPath = process.env.PROD_FALLBACK_HEAD_PATH || '/api?module=block&action=eth_block_number';
+const requireLiveHead = process.env.PROD_REQUIRE_LIVE_HEAD !== 'false';
 const outputDir = path.resolve(process.cwd(), 'qa-artifacts', 'prod-checks');
 
 function getType(value) {
@@ -40,6 +43,23 @@ function validateField(errors, object, fieldName, expectedType, scope) {
   }
 }
 
+function parseBlockNumber(result) {
+  if (typeof result === 'number' && Number.isFinite(result)) {
+    return result;
+  }
+
+  if (typeof result !== 'string' || !result.trim()) {
+    return null;
+  }
+
+  const normalized = result.trim().toLowerCase();
+  const parsed = normalized.startsWith('0x') ?
+    Number.parseInt(normalized.slice(2), 16) :
+    Number.parseInt(normalized, 10);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 const report = {
   generatedAt: new Date().toISOString(),
@@ -49,12 +69,23 @@ const report = {
 };
 
 try {
-  const [ stats, mainBlocks, blocks, transactions ] = await Promise.all([
+  const [ stats, mainBlocks, blocks, transactions, fallbackHeadResult ] = await Promise.all([
     fetchJson('/api/v2/stats'),
     fetchJson('/api/v2/main-page/blocks'),
     fetchJson('/api/v2/blocks?type=block&items_count=2'),
     fetchJson('/api/v2/transactions?items_count=2'),
+    fetchJson(fallbackHeadPath).catch((error) => ({ __error: error instanceof Error ? error.message : String(error) })),
   ]);
+  let liveHead;
+  try {
+    liveHead = await fetchJson(liveHeadPath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (requireLiveHead) {
+      report.errors.push(message);
+    }
+    report.endpoints[liveHeadPath] = { error: message };
+  }
 
   report.endpoints['/api/v2/stats'] = {
     total_blocks: stats?.total_blocks ?? null,
@@ -131,6 +162,47 @@ try {
     validateField(report.errors, transactions.items[0], 'hash', 'string', 'transactions.items[0]');
     validateField(report.errors, transactions.items[0], 'timestamp', 'string', 'transactions.items[0]');
     validateField(report.errors, transactions.items[0], 'result', 'string', 'transactions.items[0]');
+  }
+
+  if (fallbackHeadResult && !fallbackHeadResult.__error) {
+    const fallbackHead = parseBlockNumber(fallbackHeadResult?.result);
+    report.endpoints[fallbackHeadPath] = {
+      height: fallbackHead,
+    };
+
+    if (fallbackHead === null) {
+      report.errors.push(`${ fallbackHeadPath } result is invalid: ${ String(fallbackHeadResult?.result) }`);
+    }
+  } else {
+    report.endpoints[fallbackHeadPath] = {
+      error: fallbackHeadResult?.__error || 'unknown error',
+    };
+  }
+
+  if (liveHead) {
+    report.endpoints[liveHeadPath] = {
+      source_state: liveHead?.source_state ?? null,
+      global_height: liveHead?.global_head?.height ?? null,
+      indexer_height: liveHead?.indexer_head?.height ?? null,
+    };
+
+    validateField(report.errors, liveHead, 'generated_at', 'string', 'live_head');
+    validateField(report.errors, liveHead, 'source_state', 'string', 'live_head');
+    validateField(report.errors, liveHead, 'global_head', 'object', 'live_head');
+    validateField(report.errors, liveHead, 'indexer_head', 'object', 'live_head');
+    validateField(report.errors, liveHead, 'lag', 'object', 'live_head');
+    validateField(report.errors, liveHead, 'shards', 'array', 'live_head');
+
+    if (getType(liveHead?.global_head) === 'object') {
+      validateField(report.errors, liveHead.global_head, 'height', 'number', 'live_head.global_head');
+      validateField(report.errors, liveHead.global_head, 'timestamp', 'string', 'live_head.global_head');
+    }
+    if (getType(liveHead?.indexer_head) === 'object') {
+      const indexerHeightType = getType(liveHead.indexer_head.height);
+      if (indexerHeightType !== 'number' && indexerHeightType !== 'null') {
+        report.errors.push(`live_head.indexer_head.height type mismatch, expected number|null, got ${ indexerHeightType }`);
+      }
+    }
   }
 } catch (error) {
   report.errors.push(error instanceof Error ? error.message : String(error));

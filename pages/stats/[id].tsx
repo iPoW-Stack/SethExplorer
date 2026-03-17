@@ -13,6 +13,7 @@ import config from 'configs/app';
 import { MultichainProvider } from 'lib/contexts/multichain';
 import dayjs from 'lib/date/dayjs';
 import getQueryParamString from 'lib/router/getQueryParamString';
+import { isStatsServiceEnabled } from 'lib/settings/useSethStrict';
 
 const Chart = dynamic(() => import('ui/pages/Chart'), { ssr: false });
 
@@ -42,14 +43,16 @@ export const getServerSideProps: GetServerSideProps<Props<typeof pathname>> = as
       config.meta.seo.enhancedDataEnabled ||
       (config.meta.og.enhancedDataEnabled && detectBotRequest(ctx.req)?.type === 'social_preview')
     ) {
-      const chartData = await fetchApi({
-        resource: 'stats:line',
-        pathParams: { id: getQueryParamString(ctx.query.id) },
-        queryParams: { from: dayjs().format('YYYY-MM-DD'), to: dayjs().format('YYYY-MM-DD') },
-        timeout: 1000,
-      });
+      if (isStatsServiceEnabled()) {
+        const chartData = await fetchApi({
+          resource: 'stats:line',
+          pathParams: { id: getQueryParamString(ctx.query.id) },
+          queryParams: { from: dayjs().format('YYYY-MM-DD'), to: dayjs().format('YYYY-MM-DD') },
+          timeout: 1000,
+        });
 
-      (await baseResponse.props).apiData = chartData?.info ?? null;
+        (await baseResponse.props).apiData = chartData?.info ?? null;
+      }
     }
   }
 

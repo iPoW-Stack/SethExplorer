@@ -1,3 +1,5 @@
+import type { SethLiveHeadSourceState } from './liveHead';
+
 export type HomeStats = {
   total_blocks: string;
   total_addresses: string;
@@ -23,6 +25,27 @@ export type HomeStats = {
   celo?: {
     epoch_number: number;
   };
+  index_state?: 'ok' | 'lagging' | 'stalled';
+  index_lag_blocks?: number | null;
+  index_lag_seconds?: number | null;
+  seth_shards?: Array<{
+    name: string;
+    network: number;
+    pool_count: number;
+    indexed_pools: number;
+    latest_height: number | null;
+    latest_block_timestamp: string | null;
+    source_state?: SethLiveHeadSourceState;
+    error_code?: string | null;
+    last_synced_at?: string | null;
+    pools?: Array<{
+      local_pool_index: number;
+      global_pool_index: number;
+      indexed: boolean;
+      latest_height: number | null;
+      latest_block_timestamp: string | null;
+    }>;
+  }>;
 };
 
 export type GasPrices = {

@@ -92,7 +92,7 @@ const UserProfileContentWallet = ({ onClose, className }: Props) => {
         <Hint
           label={
             web3Wallet.isConnected ?
-              'This wallet is currently connected to Blockscout and used for interacting with apps and smart contracts' :
+              'This wallet is currently connected to Seth Explorer and used for interacting with apps and smart contracts' :
               'This wallet is used for interacting with apps and smart contracts'
           }
           boxSize={ 4 }

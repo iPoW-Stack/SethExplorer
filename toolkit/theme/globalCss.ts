@@ -29,10 +29,11 @@ const globalCss: SystemConfig['globalCss'] = {
     colorScheme: 'dark',
   },
   'html.dark body': {
-    bg: '#040608',
+    bg: '#0A0A0A',
     backgroundImage: [
-      'radial-gradient(circle at 15% 50%, rgba(0, 255, 163, 0.08) 0%, transparent 25%)',
-      'radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05) 0%, transparent 25%)',
+      'radial-gradient(circle at 14% 16%, rgba(0, 255, 148, 0.07) 0%, transparent 26%)',
+      'radial-gradient(circle at 86% 2%, rgba(255, 255, 255, 0.05) 0%, transparent 20%)',
+      'radial-gradient(circle at 72% 76%, rgba(0, 255, 148, 0.04) 0%, transparent 22%)',
     ].join(', '),
     backgroundAttachment: 'fixed',
   },
@@ -45,41 +46,68 @@ const globalCss: SystemConfig['globalCss'] = {
     zIndex: 0,
   },
   'html.dark body *::-webkit-scrollbar-thumb': {
-    backgroundColor: 'rgba(0, 255, 163, 0.55)',
+    backgroundColor: 'rgba(0, 255, 148, 0.5)',
     borderRadius: '9999px',
     border: '2px solid transparent',
     backgroundClip: 'padding-box',
   },
   'html.dark body *': {
-    scrollbarColor: 'rgba(0, 255, 163, 0.55) transparent',
+    scrollbarColor: 'rgba(0, 255, 148, 0.5) transparent',
   },
   'html.dark .seth-page-shell': {
     position: 'relative',
     zIndex: 1,
   },
   'html.dark .seth-panel': {
-    background: 'rgba(10, 16, 20, 0.6)',
+    background: 'linear-gradient(160deg, rgba(28, 28, 28, 0.94) 0%, rgba(20, 20, 20, 0.9) 100%)',
     border: '1px solid rgba(255, 255, 255, 0.05)',
-    borderRadius: '0px',
-    backdropFilter: 'blur(12px)',
-    boxShadow: '0 0 0 1px rgba(0, 255, 163, 0.02), 0 8px 30px rgba(0, 0, 0, 0.4)',
+    borderRadius: '12px',
+    backdropFilter: 'blur(14px)',
+    boxShadow: '0 0 0 1px rgba(255, 255, 255, 0.02), 0 10px 28px rgba(0, 0, 0, 0.42)',
   },
   'html.dark .seth-panel-soft': {
-    background: 'rgba(10, 16, 20, 0.58)',
+    background: 'linear-gradient(160deg, rgba(26, 26, 26, 0.88) 0%, rgba(20, 20, 20, 0.82) 100%)',
     border: '1px solid rgba(255, 255, 255, 0.05)',
-    borderRadius: '0px',
+    borderRadius: '12px',
     backdropFilter: 'blur(10px)',
   },
   'html.dark .seth-panel-hover': {
     transitionProperty: 'background-color,border-color,box-shadow,transform',
     transitionDuration: 'normal',
   },
+  'html.dark .seth-fade-in-up': {
+    opacity: 0,
+    animation: 'sethFadeInUp 420ms ease-out forwards',
+    animationDelay: 'calc(var(--seth-index, 0) * 60ms)',
+  },
+  'html.dark .seth-list-enter': {
+    animation: 'sethSlideDown 300ms ease-out both, sethFlashGreen 1.5s ease-out both',
+    animationDelay: 'calc(var(--seth-index, 0) * 30ms), calc(var(--seth-index, 0) * 30ms)',
+  },
   'html.dark .seth-panel-hover:hover': {
-    borderColor: 'rgba(0, 255, 163, 0.28)',
-    boxShadow: '0 0 15px rgba(0, 255, 163, 0.05), 0 8px 30px rgba(0, 0, 0, 0.4)',
+    borderColor: 'rgba(0, 255, 148, 0.22)',
+    boxShadow: '0 0 22px rgba(0, 255, 148, 0.06), 0 14px 34px rgba(0, 0, 0, 0.45)',
+    transform: 'translateY(-1px)',
+  },
+  'html.dark .seth-panel table tbody tr td': {
+    height: '48px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+  },
+  'html.dark .seth-panel table tbody tr:nth-of-type(odd) td': {
+    bgColor: 'rgba(255, 255, 255, 0.015)',
+  },
+  'html.dark .seth-panel table tbody tr:hover td': {
+    bgColor: 'rgba(255, 255, 255, 0.03)',
+  },
+  'html.dark .seth-panel table tbody tr:hover td:first-of-type': {
+    boxShadow: 'inset 3px 0 0 #00FF94',
+  },
+  'html.dark .seth-panel code, html.dark .seth-panel pre, html.dark [data-entity-hash="true"]': {
+    fontFamily: 'var(--chakra-fonts-mono)',
+    letterSpacing: '0.1px',
   },
   'html.dark .seth-header-glass': {
-    background: 'rgba(4, 6, 8, 0.76)',
+    background: 'rgba(10, 10, 10, 0.76)',
     backdropFilter: 'blur(12px)',
     border: '1px solid rgba(255, 255, 255, 0.05)',
     borderRadius: '12px',

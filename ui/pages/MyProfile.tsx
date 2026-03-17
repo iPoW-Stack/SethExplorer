@@ -49,7 +49,7 @@ const MyProfile = () => {
       <>
         <AccountPageDescription>
           You can add your email to receive watchlist notifications.
-          Additionally, you can manage your wallet address and email, which can be used for logging into your Blockscout account.
+          Additionally, you can manage your wallet address and email, which can be used for logging into your Seth Explorer account.
         </AccountPageDescription>
         <Flex maxW="480px" mt={ 8 } flexDir="column" rowGap={ 12 }>
           <MyProfileEmail profileQuery={ profileQuery }/>

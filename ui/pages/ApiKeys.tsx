@@ -58,7 +58,7 @@ const ApiKeysPage: React.FC = () => {
   const description = (
     <AccountPageDescription>
       Create API keys to use for your RPC and EthRPC API requests. For more information, see { space }
-      <Link href="https://docs.blockscout.com/using-blockscout/my-account/api-keys#api-keys" external noIcon>"How to use a Blockscout API key"</Link>.
+      <Link href="https://docs.apipost.net/docs/detail/5a5558709888000?target_id=3933fac5be0137" external noIcon>"How to use a Seth Explorer API key"</Link>.
     </AccountPageDescription>
   );
 

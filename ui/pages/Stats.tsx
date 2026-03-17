@@ -9,6 +9,7 @@ import PageTitle from 'ui/shared/Page/PageTitle';
 
 import ChartsWidgetsList from '../stats/ChartsWidgetsList';
 import NumberWidgetsList from '../stats/NumberWidgetsList';
+import SethShardsStatus from '../stats/SethShardsStatus';
 import StatsFilters from '../stats/StatsFilters';
 import useStats from '../stats/useStats';
 
@@ -74,6 +75,8 @@ const Stats = () => {
           </Text>
         </Alert>
       ) }
+
+      <SethShardsStatus/>
 
       <Box mb={{ base: 6, sm: 8 }}>
         <NumberWidgetsList/>

@@ -34,7 +34,7 @@ const RewardsInstancesModal = ({ isOpen, onClose, items }: Props) => {
         <DialogBody>
           <Flex flexDir="column" gap={ 6 }>
             <Text>
-              Choose Blockscout explorer that you want to interact with and earn
+              Choose the Seth Explorer instance that you want to interact with and earn
               Merits
             </Text>
             <Flex flexWrap="wrap" gap={ 2 }>

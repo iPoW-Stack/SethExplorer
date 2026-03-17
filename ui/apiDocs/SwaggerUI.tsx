@@ -30,6 +30,30 @@ interface Props {
   requestInterceptor?: (request: SwaggerRequest) => SwaggerRequest;
 }
 
+function replaceBrandingText(value: string) {
+  return value
+    .replaceAll('Blockscout', 'Seth Explorer')
+    .replaceAll('blockscout', 'seth explorer');
+}
+
+function sanitizeSwaggerPayload(payload: unknown): unknown {
+  if (typeof payload === 'string') {
+    return replaceBrandingText(payload);
+  }
+
+  if (Array.isArray(payload)) {
+    return payload.map((item) => sanitizeSwaggerPayload(item));
+  }
+
+  if (payload && typeof payload === 'object') {
+    return Object.fromEntries(
+      Object.entries(payload).map(([ key, value ]) => [ key, sanitizeSwaggerPayload(value) ]),
+    );
+  }
+
+  return payload;
+}
+
 const SwaggerUI = ({ url, requestInterceptor }: Props) => {
   const mainColor = { _light: 'blackAlpha.800', _dark: 'whiteAlpha.800' };
   const borderColor = useToken('colors', 'border.divider');
@@ -113,12 +137,25 @@ const SwaggerUI = ({ url, requestInterceptor }: Props) => {
     },
   };
 
+  const responseInterceptor = React.useCallback((response: Record<string, unknown>) => {
+    if (typeof response?.text === 'string') {
+      response.text = replaceBrandingText(response.text);
+    }
+
+    if (response?.data !== undefined) {
+      response.data = sanitizeSwaggerPayload(response.data);
+    }
+
+    return response;
+  }, []);
+
   return (
     <Box css={ swaggerStyle }>
       <SwaggerUIReact
         url={ url }
         plugins={ [ NeverShowInfoPlugin ] }
         requestInterceptor={ requestInterceptor }
+        responseInterceptor={ responseInterceptor }
       />
     </Box>
   );

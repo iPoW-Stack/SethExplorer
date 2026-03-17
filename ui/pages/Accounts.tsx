@@ -9,6 +9,7 @@ import AddressesListItem from 'ui/addresses/AddressesListItem';
 import AddressesTable from 'ui/addresses/AddressesTable';
 import ActionBar, { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
+import ExplorerEmptyState from 'ui/shared/emptyState/ExplorerEmptyState';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
@@ -77,6 +78,15 @@ const Accounts = () => {
         isError={ isError }
         itemsNum={ data?.items.length }
         emptyText="There are no accounts."
+        emptyState={
+          <ExplorerEmptyState
+            testId="accounts-empty-state"
+            iconName="profile"
+            title="No accounts indexed yet"
+            description="Top accounts will show up here once address indexing is available."
+            primaryAction={{ label: 'View Latest Transactions', href: '/txs' }}
+          />
+        }
         actionBar={ actionBar }
       >
         { content }

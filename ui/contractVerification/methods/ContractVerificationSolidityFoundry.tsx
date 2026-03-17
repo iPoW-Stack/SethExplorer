@@ -17,7 +17,7 @@ const ContractVerificationSolidityFoundry = () => {
 
   const codeSnippet = `forge verify-contract \\
   --rpc-url ${ config.chain.rpcUrls[0] || (config.apis.general ? `${ config.apis.general.endpoint }/api/eth-rpc` : '') } \\
-  --verifier blockscout \\
+  --verifier custom \\
   --verifier-url '${ config.apis.general ? `${ config.apis.general.endpoint }/api/` : '' }' \\
   ${ address || '<address>' } \\
   [contractFile]:[contractName]`;
@@ -29,8 +29,8 @@ const ContractVerificationSolidityFoundry = () => {
           <ContractVerificationFormCodeSnippet code={ codeSnippet }/>
         </Flex>
         <Box whiteSpace="pre-wrap">
-          <span>Full tutorial about contract verification via Foundry on Blockscout is available </span>
-          <Link href="https://docs.blockscout.com/devs/verification/foundry-verification" external>
+          <span>Full tutorial about contract verification via Foundry on Seth Explorer is available </span>
+          <Link href="https://github.com/iPoW-Stack/SethExplorer" external>
             here
           </Link>
         </Box>

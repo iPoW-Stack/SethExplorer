@@ -22,7 +22,7 @@ const GetGasButton = () => {
       const dappId = getGasFeature.dappId;
       const urlObj = new URL(getGasFeature.url);
 
-      urlObj.searchParams.append('utm_source', 'blockscout');
+      urlObj.searchParams.append('utm_source', 'seth');
       urlObj.searchParams.append('utm_medium', 'address');
 
       const url = urlObj.toString();

@@ -1,5 +1,5 @@
 import type { HTMLChakraProps } from '@chakra-ui/react';
-import { chakra, Center } from '@chakra-ui/react';
+import { Box, chakra, Center } from '@chakra-ui/react';
 import React from 'react';
 import type { ChangeEvent, FormEvent, FocusEvent } from 'react';
 
@@ -36,6 +36,7 @@ const SearchBarInput = (
   React.useImperativeHandle(ref, () => innerRef.current as HTMLFormElement, []);
   const isMobile = useIsMobile();
   const isSethStrict = useSethStrict();
+  const [isFocused, setIsFocused] = React.useState(false);
 
   const borderWidthHeroBanner = useColorModeValue(
     config.UI.homepage.heroBanner?.search?.border_width?.[0] ?? '0px',
@@ -45,6 +46,22 @@ const SearchBarInput = (
   const handleChange = React.useCallback((event: ChangeEvent<HTMLInputElement>) => {
     onChange?.(event.target.value);
   }, [ onChange ]);
+
+  const handleOverlayMouseDown = React.useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsFocused(false);
+    onHide?.();
+  }, [ onHide ]);
+
+  const handleFormBlur = React.useCallback((event: FocusEvent<HTMLFormElement>) => {
+    setIsFocused(false);
+    onBlur?.(event);
+  }, [ onBlur ]);
+
+  const handleInputFocus = React.useCallback(() => {
+    setIsFocused(true);
+    onFocus?.();
+  }, [ onFocus ]);
 
   const handleKeyPress = React.useCallback((event: KeyboardEvent) => {
     if (isMobile) {
@@ -103,12 +120,17 @@ const SearchBarInput = (
       <ClearButton onClick={ onClear } visible={ Boolean(value?.length) } mx={ 2 }/>
       { !isMobile && (
         <Center
-          boxSize="20px"
+          minW="42px"
+          h="22px"
           mr={ 2 }
-          borderRadius="sm"
+          px={ 2 }
+          borderRadius="6px"
           borderWidth="1px"
-          borderColor={ isSethStrict ? 'rgba(107, 114, 128, 0.7)' : 'input.element' }
-          color={ isSethStrict ? 'gray.500' : 'inherit' }
+          borderColor={ isSethStrict ? 'rgba(255, 255, 255, 0.18)' : 'input.element' }
+          color={ isSethStrict ? 'gray.400' : 'inherit' }
+          bg={ isSethStrict ? 'rgba(255, 255, 255, 0.03)' : 'transparent' }
+          fontSize="11px"
+          fontWeight={ 600 }
         >
           /
         </Center>
@@ -117,61 +139,73 @@ const SearchBarInput = (
   );
 
   return (
-    <chakra.form
-      ref={ innerRef }
-      noValidate
-      onSubmit={ onSubmit }
-      onBlur={ onBlur }
-      onClick={ onFormClick }
-      w="100%"
-      backgroundColor={{ _light: 'bg.primary', _dark: isSethStrict ? 'transparent' : 'rgba(10, 16, 20, 0.78)' }}
-      borderRadius={ isSethStrict ? '8px' : 'xl' }
-      borderWidth={ isSethStrict ? '0px' : '1px' }
-      borderColor={{ _light: 'transparent', _dark: isSethStrict ? 'transparent' : 'rgba(255, 255, 255, 0.1)' }}
-      backdropFilter={{ _dark: isSethStrict ? 'none' : 'blur(10px)' }}
-      boxShadow={{ _light: 'none', _dark: isSethStrict ? 'none' : 'inset 0 0 0 1px rgba(0, 255, 163, 0.04)' }}
-      position="relative"
-      zIndex={ isSuggestOpen ? 'modal' : 'auto' }
-      { ...rest }
-    >
-      <InputGroup
-        startElement={ startElement }
-        endElement={ endElement }
-      >
-        <Input
-          size={{ base: isHeroBanner ? 'md' : 'sm', lg: 'md' }}
-          h={ isSethStrict ? '36px' : undefined }
-          placeholder={ getPlaceholder() }
-          value={ value }
-          onChange={ handleChange }
-          onFocus={ onFocus }
-          tabIndex={ readOnly ? -1 : 0 }
-          borderRadius={ isSethStrict ? '8px' : undefined }
-          fontSize={ isSethStrict ? '14px' : undefined }
-          fontWeight={ isSethStrict ? 400 : undefined }
-          lineHeight={ isSethStrict ? '20px' : undefined }
-          borderWidth={ isSethStrict ? '1px' : (isHeroBanner ? borderWidthHeroBanner : '2px') }
-          borderStyle="solid"
-          borderColor={{ _light: 'blackAlpha.100', _dark: isSethStrict ? 'seth.border' : 'seth.border' }}
-          color={{ _light: 'black', _dark: 'whiteAlpha.900' }}
-          backgroundColor={{
-            base: isHeroBanner ? 'input.bg' : 'dialog.bg',
-            lg: 'input.bg',
-            _dark: isSethStrict ? 'seth.card' : 'transparent',
-          }}
-          _hover={{ borderColor: isSethStrict ? 'seth.primary' : 'input.border.hover' }}
-          _focusWithin={{
-            _placeholder: {
-              color: { _light: 'gray.300', _dark: isSethStrict ? 'gray.500' : 'rgba(0, 255, 163, 0.55)' },
-            },
-            borderColor: isSethStrict ? 'seth.primary' : 'input.border.focus',
-            boxShadow: { _dark: isSethStrict ? '0 0 0 1px rgba(0, 255, 163, 0.45)' : '0 0 0 1px rgba(0, 255, 163, 0.26), 0 0 16px rgba(0, 255, 163, 0.12)' },
-            _hover: { borderColor: isSethStrict ? 'seth.primary' : 'input.border.focus' },
-          }}
-          enterKeyHint="search"
+    <>
+      { (isSuggestOpen || isFocused) && !isMobile && (
+        <Box
+          position="fixed"
+          inset={ 0 }
+          zIndex="overlay"
+          bgColor="rgba(0, 0, 0, 0.3)"
+          backdropFilter="blur(2px)"
+          onMouseDown={ handleOverlayMouseDown }
         />
-      </InputGroup>
-    </chakra.form>
+      ) }
+      <chakra.form
+        ref={ innerRef }
+        noValidate
+        onSubmit={ onSubmit }
+        onBlur={ handleFormBlur }
+        onClick={ onFormClick }
+        w="100%"
+        backgroundColor={{ _light: 'bg.primary', _dark: isSethStrict ? 'rgba(20, 20, 20, 0.74)' : 'rgba(10, 16, 20, 0.78)' }}
+        borderRadius={ isSethStrict ? '10px' : 'xl' }
+        borderWidth={ isSethStrict ? '1px' : '1px' }
+        borderColor={{ _light: 'transparent', _dark: isSethStrict ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.1)' }}
+        backdropFilter={{ _dark: isSethStrict ? 'blur(10px)' : 'blur(10px)' }}
+        boxShadow={{ _light: 'none', _dark: isSethStrict ? '0 0 0 1px rgba(255, 255, 255, 0.02)' : 'inset 0 0 0 1px rgba(0, 255, 163, 0.04)' }}
+        position="relative"
+        zIndex={ isSuggestOpen ? 'modal' : 'auto' }
+        { ...rest }
+      >
+        <InputGroup
+          startElement={ startElement }
+          endElement={ endElement }
+        >
+          <Input
+            size={{ base: isHeroBanner ? 'md' : 'sm', lg: 'md' }}
+            h={ isSethStrict ? '38px' : undefined }
+            placeholder={ getPlaceholder() }
+            value={ value }
+            onChange={ handleChange }
+            onFocus={ handleInputFocus }
+            tabIndex={ readOnly ? -1 : 0 }
+            borderRadius={ isSethStrict ? '10px' : undefined }
+            fontSize={ isSethStrict ? '14px' : undefined }
+            fontWeight={ isSethStrict ? 400 : undefined }
+            lineHeight={ isSethStrict ? '20px' : undefined }
+            borderWidth={ isSethStrict ? '1px' : (isHeroBanner ? borderWidthHeroBanner : '2px') }
+            borderStyle="solid"
+            borderColor={{ _light: 'blackAlpha.100', _dark: isSethStrict ? 'seth.border' : 'seth.border' }}
+            color={{ _light: 'black', _dark: 'whiteAlpha.900' }}
+            backgroundColor={{
+              base: isHeroBanner ? 'input.bg' : 'dialog.bg',
+              lg: 'input.bg',
+              _dark: isSethStrict ? 'seth.card' : 'transparent',
+            }}
+            _hover={{ borderColor: isSethStrict ? 'seth.primary' : 'input.border.hover' }}
+            _focusWithin={{
+              _placeholder: {
+                color: { _light: 'gray.300', _dark: isSethStrict ? 'gray.500' : 'rgba(0, 255, 163, 0.55)' },
+              },
+              borderColor: isSethStrict ? 'seth.primary' : 'input.border.focus',
+              boxShadow: { _dark: isSethStrict ? '0 0 0 1px rgba(0, 255, 148, 0.5), 0 0 18px rgba(0, 255, 148, 0.14)' : '0 0 0 1px rgba(0, 255, 163, 0.26), 0 0 16px rgba(0, 255, 163, 0.12)' },
+              _hover: { borderColor: isSethStrict ? 'seth.primary' : 'input.border.focus' },
+            }}
+            enterKeyHint="search"
+          />
+        </InputGroup>
+      </chakra.form>
+    </>
   );
 };
 

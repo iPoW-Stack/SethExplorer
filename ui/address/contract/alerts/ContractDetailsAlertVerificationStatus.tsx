@@ -26,10 +26,10 @@ const ContractDetailsAlertVerificationStatus = ({ data, isLoading, addressData }
         <>
           <span>This contract has been { data.is_partially_verified ? 'partially ' : '' }verified using </span>
           <Link
-            href="https://docs.blockscout.com/devs/verification/ethereum-bytecode-database-microservice"
+            href="https://github.com/iPoW-Stack/SethExplorer"
             external
           >
-            Blockscout Bytecode Database
+            Seth Bytecode Database
           </Link>
         </>
       );

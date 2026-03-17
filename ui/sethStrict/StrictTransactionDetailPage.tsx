@@ -40,6 +40,35 @@ function rowLinkTestId(label: string) {
   return `strict-tx-detail-${ label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }-link`;
 }
 
+function getStatusPresentation(value: string) {
+  switch (value.toLowerCase()) {
+    case 'success':
+      return {
+        icon: 'status/success' as const,
+        bg: 'rgba(0, 255, 148, 0.12)',
+        border: 'rgba(0, 255, 148, 0.35)',
+        color: '#86efac',
+        testId: 'strict-tx-status-success',
+      };
+    case 'failed':
+      return {
+        icon: 'status/error' as const,
+        bg: 'rgba(255, 77, 77, 0.12)',
+        border: 'rgba(255, 77, 77, 0.35)',
+        color: '#fca5a5',
+        testId: 'strict-tx-status-failed',
+      };
+    default:
+      return {
+        icon: 'status/pending' as const,
+        bg: 'rgba(245, 158, 11, 0.14)',
+        border: 'rgba(245, 158, 11, 0.35)',
+        color: '#fcd34d',
+        testId: 'strict-tx-status-pending',
+      };
+  }
+}
+
 function renderValue(row: { label: string; value: string; suffix?: string; isChip?: boolean; href?: string; copyValue?: string }) {
   if (row.label === 'Block') {
     return (
@@ -106,7 +135,9 @@ interface Props {
 }
 
 const StrictTransactionDetailPage = ({ txQuery, hash }: Props) => {
-  const { state, title, overviewRows, refetch } = useStrictTransactionDetailData({ txQuery, hash });
+  const { state, title, overviewRows, gasRows, refetch } = useStrictTransactionDetailData({ txQuery, hash });
+  const coreRows = overviewRows.filter((row) => [ 'Transaction Hash', 'Status', 'Block', 'Timestamp' ].includes(row.label));
+  const transferRows = overviewRows.filter((row) => [ 'From', 'To', 'Value', 'Transaction Fee' ].includes(row.label));
 
   return (
     <Box className="seth-page-shell">
@@ -132,18 +163,25 @@ const StrictTransactionDetailPage = ({ txQuery, hash }: Props) => {
         <Text data-testid="strict-tx-detail-title" fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>{ title }</Text>
       </Box>
 
-      <Box className="seth-panel seth-panel-hover" borderWidth="1px" borderColor={ borderColor } overflow="hidden">
+      <Box
+        className="seth-panel seth-panel-hover seth-fade-in-up"
+        style={{ '--seth-index': 0 } as React.CSSProperties}
+        borderWidth="1px"
+        borderColor={ borderColor }
+        overflow="hidden"
+      >
         <Box px={ 6 } py={ 4 } borderBottomWidth="1px" borderBottomColor={ borderColor }>
           <Text fontSize="lg" lineHeight="1.2" fontWeight={ 700 }>Overview</Text>
         </Box>
         <VStack alignItems="stretch" gap={ 0 } px={ 6 } py={ 4 }>
-          { overviewRows.map((row, index) => (
+          <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider" mb={ 1 }>
+            Core Info
+          </Text>
+          { coreRows.map((row) => (
             <Grid
               key={ row.label }
               gridTemplateColumns={{ base: '1fr', lg: '240px 1fr' }}
               py={ 2.5 }
-              borderTopWidth={ index === 4 || index === 6 ? '1px' : 0 }
-              borderTopColor={ borderColor }
             >
               <Flex alignItems="center" gap={ 2 } color="gray.400">
                 <IconSvg name={ getRowIcon(row.label) } boxSize={ 4 } opacity={ 0.55 } transform={ row.label === 'To' ? 'rotate(180deg)' : undefined }/>
@@ -151,20 +189,32 @@ const StrictTransactionDetailPage = ({ txQuery, hash }: Props) => {
               </Flex>
               <Box>
                 { row.isStatus ? (
-                  <HStack
-                    w="fit-content"
-                    px={ 3 }
-                    py={ 1.5 }
-                    borderRadius="full"
-                    bgColor="rgba(34, 197, 94, 0.2)"
-                    borderWidth="1px"
-                    borderColor="rgba(34, 197, 94, 0.35)"
-                    color="#dcfce7"
-                    fontWeight={ 500 }
-                  >
-                    <Box boxSize={ 2 } borderRadius="full" bgColor="#86efac"/>
-                    <Text>{ row.value }</Text>
-                  </HStack>
+                  (() => {
+                    const status = getStatusPresentation(row.value);
+                    return (
+                      <HStack
+                        data-testid={ status.testId }
+                        w="fit-content"
+                        px={ 3 }
+                        py={ 1.5 }
+                        borderRadius="full"
+                        bgColor={ status.bg }
+                        borderWidth="1px"
+                        borderColor={ status.border }
+                        color={ status.color }
+                        fontWeight={ 600 }
+                        gap={ 1.5 }
+                      >
+                        <IconSvg
+                          name={ status.icon }
+                          boxSize={ 3.5 }
+                          color={ status.color }
+                          animation={ status.icon === 'status/pending' ? 'sethBadgePulse 1.8s ease-in-out infinite' : undefined }
+                        />
+                        <Text>{ row.value }</Text>
+                      </HStack>
+                    );
+                  })()
                 ) : (
                   <Flex alignItems="center" gap={ 2 } flexWrap="wrap">
                     { renderValue(row) }
@@ -173,6 +223,62 @@ const StrictTransactionDetailPage = ({ txQuery, hash }: Props) => {
               </Box>
             </Grid>
           )) }
+
+          { transferRows.length > 0 && (
+            <>
+              <Box borderTopWidth="1px" borderTopColor="seth.border" my={ 3 }/>
+              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider" mb={ 1 }>
+                Transfer Info
+              </Text>
+              { transferRows.map((row) => (
+                <Grid
+                  key={ row.label }
+                  gridTemplateColumns={{ base: '1fr', lg: '240px 1fr' }}
+                  py={ 2.5 }
+                >
+                  <Flex alignItems="center" gap={ 2 } color="gray.400">
+                    <IconSvg name={ getRowIcon(row.label) } boxSize={ 4 } opacity={ 0.55 } transform={ row.label === 'To' ? 'rotate(180deg)' : undefined }/>
+                    <Text>{ row.label }</Text>
+                  </Flex>
+                  <Box>
+                    <Flex alignItems="center" gap={ 2 } flexWrap="wrap">
+                      { renderValue(row) }
+                    </Flex>
+                  </Box>
+                </Grid>
+              )) }
+            </>
+          ) }
+
+          { gasRows.length > 0 && (
+            <>
+              <Box borderTopWidth="1px" borderTopColor="seth.border" my={ 3 }/>
+              <Box as="details" data-testid="strict-tx-gas-details">
+                <Box
+                  as="summary"
+                  cursor="pointer"
+                  color="gray.300"
+                  fontSize="sm"
+                  fontWeight={ 500 }
+                  _marker={{ color: 'seth.primary' }}
+                >
+                  Gas Details
+                </Box>
+                <VStack alignItems="stretch" gap={ 0 } mt={ 2 }>
+                  { gasRows.map((row) => (
+                    <Grid
+                      key={ row.label }
+                      gridTemplateColumns={{ base: '1fr', lg: '240px 1fr' }}
+                      py={ 2 }
+                    >
+                      <Text color="gray.400">{ row.label }</Text>
+                      <Text color="gray.100">{ row.value }</Text>
+                    </Grid>
+                  )) }
+                </VStack>
+              </Box>
+            </>
+          ) }
         </VStack>
       </Box>
     </Box>

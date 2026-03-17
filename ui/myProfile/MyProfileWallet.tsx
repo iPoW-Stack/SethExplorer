@@ -25,7 +25,7 @@ const MyProfileWallet = ({ profileQuery, onAddWallet }: Props) => {
         { config.features.rewards.isEnabled && (
           <>
             and participation in the Merits Program.
-            <Link external href="https://docs.blockscout.com/using-blockscout/merits" ml={ 1 }>
+            <Link href="/account/merits" ml={ 1 }>
               Learn more
             </Link>
           </>

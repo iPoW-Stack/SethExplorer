@@ -23,6 +23,7 @@ import SearchResultTableItem from 'ui/searchResults/SearchResultTableItem';
 import ActionBar, { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
 import AppErrorBoundary from 'ui/shared/AppError/AppErrorBoundary';
 import DataFetchAlert from 'ui/shared/DataFetchAlert';
+import ExplorerEmptyState from 'ui/shared/emptyState/ExplorerEmptyState';
 import * as Layout from 'ui/shared/layout/components';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
@@ -232,17 +233,15 @@ const SearchResultsPageContent = () => {
       }
 
       return (
-        <Flex
-          py={ 10 }
-          justifyContent="center"
-          borderWidth="1px"
-          borderColor="border.divider"
-          borderRadius="lg"
-          bgColor="bg.secondary"
-        >
-          <Text color="text.secondary" fontSize="sm">
-            No matching results found. Try block number, transaction hash, or address.
-          </Text>
+        <Flex>
+          <ExplorerEmptyState
+            testId="search-results-empty-state"
+            iconName="search"
+            title="No matching results found"
+            description="Try a full address (0x...), transaction hash, or block number."
+            primaryAction={{ label: 'Browse Latest Blocks', href: '/blocks' }}
+            secondaryAction={{ label: 'View Transactions', href: '/txs', variant: 'outline' }}
+          />
         </Flex>
       );
     }

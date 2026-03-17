@@ -7,7 +7,7 @@ const DEFAULT_THEME_COLORS = {
   bg: {
     primary: {
       _light: { value: '#FFFFFF' },
-      _dark: { value: '#040608' }, // seth-bg
+      _dark: { value: '#0A0A0A' }, // seth-bg
     },
   },
   text: {
@@ -17,7 +17,7 @@ const DEFAULT_THEME_COLORS = {
     },
     secondary: {
       _light: { value: '{colors.gray.500}' },
-      _dark: { value: '{colors.gray.300}' },
+      _dark: { value: '{colors.gray.400}' },
     },
   },
   hover: {
@@ -32,13 +32,13 @@ const DEFAULT_THEME_COLORS = {
       },
       bg: {
         _light: { value: '{colors.blue.50}' },
-        _dark: { value: 'rgba(0, 255, 163, 0.14)' },
+        _dark: { value: '{colors.seth.muted}' },
       },
     },
     option: {
       bg: {
         _light: { value: '{colors.blue.500}' },
-        _dark: { value: 'rgba(0, 255, 163, 0.2)' },
+        _dark: { value: 'rgba(0, 255, 148, 0.18)' },
       },
     },
   },
@@ -72,11 +72,11 @@ const DEFAULT_THEME_COLORS = {
     gradient: {
       start: {
         _light: { value: 'rgba(144, 205, 244, 0.3)' },
-        _dark: { value: 'rgba(0, 255, 163, 0.3)' },
+        _dark: { value: 'rgba(0, 255, 148, 0.24)' },
       },
       stop: {
         _light: { value: 'rgba(144, 205, 244, 0)' },
-        _dark: { value: 'rgba(0, 255, 163, 0)' },
+        _dark: { value: 'rgba(0, 255, 148, 0)' },
       },
     },
   },
@@ -84,7 +84,7 @@ const DEFAULT_THEME_COLORS = {
     bg: {
       selected: {
         _light: { value: '{colors.blue.50}' },
-        _dark: { value: 'rgba(0, 255, 163, 0.1)' },
+        _dark: { value: '{colors.seth.muted}' },
       },
     },
     text: {
@@ -97,13 +97,13 @@ const DEFAULT_THEME_COLORS = {
   stats: {
     bg: {
       _light: { value: '{colors.gray.50}' },
-      _dark: { value: 'rgba(10, 16, 20, 0.72)' },
+      _dark: { value: 'rgba(20, 20, 20, 0.82)' },
     },
   },
   topbar: {
     bg: {
       _light: { value: '{colors.gray.50}' },
-      _dark: { value: 'rgba(4, 6, 8, 0.74)' },
+      _dark: { value: 'rgba(10, 10, 10, 0.74)' },
     },
   },
   tabs: {
@@ -281,12 +281,15 @@ const colors = {
 
   // SETH DESIGN TOKENS (seth_broswer_frontend_design)
   seth: {
-    bg: { value: '#040608' },
-    card: { value: '#0a1014' },
-    border: { value: '#15222b' },
-    primary: { value: '#00FFA3' },
-    accent: { value: '#00CC83' },
-    dim: { value: 'rgba(0, 255, 163, 0.12)' },
+    bg: { value: '#0A0A0A' },
+    card: { value: '#141414' },
+    elevated: { value: '#1C1C1C' },
+    border: { value: 'rgba(255, 255, 255, 0.06)' },
+    primary: { value: '#00FF94' },
+    accent: { value: '#00D985' },
+    muted: { value: 'rgba(0, 255, 148, 0.10)' },
+    glow: { value: 'rgba(0, 255, 148, 0.06)' },
+    dim: { value: 'rgba(0, 255, 148, 0.12)' },
   },
 
   // THEME COLORS

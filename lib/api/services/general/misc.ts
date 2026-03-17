@@ -12,6 +12,7 @@ import type { HotContractsFilters, HotContractsResponse, HotContractsSorting } f
 import type { DepositsResponse, DepositsCounters } from 'types/api/deposits';
 import type { CeloEpochDetails, CeloEpochElectionRewardDetailsResponse, CeloEpochListResponse } from 'types/api/epochs';
 import type { IndexingStatus } from 'types/api/indexingStatus';
+import type { SethBlockNumberResponse, SethLiveHeadResponse } from 'types/api/liveHead';
 import type { NovesAccountHistoryResponse, NovesDescribeTxsResponse, NovesResponseData } from 'types/api/noves';
 import type {
   OptimisticL2DepositsItem,
@@ -39,6 +40,10 @@ import type {
   ZkEvmL2TxnBatchesItem,
 } from 'types/api/zkEvmL2';
 
+import { getEnvValue } from 'configs/app/utils';
+
+const sethLiveHeadApiPath = getEnvValue('NEXT_PUBLIC_LIVE_HEAD_API_PATH') || '/api/v2/seth/live-head';
+
 export const GENERAL_API_MISC_RESOURCES = {
   // WITHDRAWALS
   withdrawals: {
@@ -65,6 +70,20 @@ export const GENERAL_API_MISC_RESOURCES = {
     path: '/api/v2/stats',
     headers: {
       'updated-gas-oracle': 'true',
+    },
+  },
+  seth_live_head: {
+    path: sethLiveHeadApiPath,
+    headers: {
+      'cache-control': 'no-store',
+      pragma: 'no-cache',
+    },
+  },
+  seth_block_number: {
+    path: '/api?module=block&action=eth_block_number',
+    headers: {
+      'cache-control': 'no-store',
+      pragma: 'no-cache',
     },
   },
   stats_charts_txs: {
@@ -277,6 +296,8 @@ export type GeneralApiMiscResourceName = `general:${ keyof typeof GENERAL_API_MI
 /* eslint-disable @stylistic/indent */
 export type GeneralApiMiscResourcePayload<R extends GeneralApiMiscResourceName> =
 R extends 'general:stats' ? HomeStats :
+R extends 'general:seth_live_head' ? SethLiveHeadResponse :
+R extends 'general:seth_block_number' ? SethBlockNumberResponse :
 R extends 'general:stats_charts_txs' ? ChartTransactionResponse :
 R extends 'general:stats_charts_market' ? ChartMarketResponse :
 R extends 'general:stats_charts_secondary_coin_price' ? ChartSecondaryCoinPriceResponse :

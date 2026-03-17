@@ -58,12 +58,12 @@ const StatsWidget = ({
       <Flex
         className={ href ? undefined : className }
         alignItems="center"
-        bgColor={ isLoading ? { _light: 'blackAlpha.50', _dark: 'whiteAlpha.50' } : { _light: 'theme.stats.bg._light', _dark: 'rgba(10, 16, 20, 0.8)' } }
-        p={ 3 }
-        borderRadius="xl"
+        bg={ isLoading ? { _light: 'blackAlpha.50', _dark: 'whiteAlpha.50' } : { _light: 'theme.stats.bg._light', _dark: 'linear-gradient(160deg, rgba(28, 28, 28, 0.94) 0%, rgba(20, 20, 20, 0.9) 100%)' } }
+        p={{ base: 2.5, lg: 3 }}
+        borderRadius="lg"
         borderWidth="1px"
         borderColor={{ _light: 'transparent', _dark: 'rgba(255, 255, 255, 0.06)' }}
-        boxShadow={{ _light: 'none', _dark: 'inset 0 0 0 1px rgba(0, 255, 163, 0.03)' }}
+        boxShadow={{ _light: 'none', _dark: 'inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 8px 20px rgba(0, 0, 0, 0.32)' }}
         justifyContent="space-between"
         columnGap={ 2 }
         w="100%"
@@ -76,6 +76,10 @@ const StatsWidget = ({
             boxSize="40px"
             isLoading={ isLoading }
             borderRadius="base"
+            bg={{ _light: 'blackAlpha.100', _dark: 'rgba(0, 255, 148, 0.14)' }}
+            borderWidth="1px"
+            borderColor={{ _light: 'transparent', _dark: 'rgba(0, 255, 148, 0.3)' }}
+            color={{ _light: 'icon.primary', _dark: '#b8ffe0' }}
             display={{ base: 'none', lg: 'block' }}
             flexShrink={ 0 }
           />
@@ -88,7 +92,7 @@ const StatsWidget = ({
         >
           <Skeleton
             loading={ isLoading }
-            color="text.secondary"
+            color="gray.400"
             textStyle="sm"
             w="fit-content"
           >
@@ -98,8 +102,9 @@ const StatsWidget = ({
             loading={ isLoading }
             display="flex"
             alignItems="baseline"
-            fontWeight={ 500 }
-            textStyle="heading.lg"
+            fontWeight={ 700 }
+            fontSize={{ base: '26px', lg: '32px' }}
+            lineHeight={{ base: '32px', lg: '38px' }}
           >
             { valuePrefix && <chakra.span whiteSpace="pre">{ valuePrefix }</chakra.span> }
             { typeof value === 'string' ? (

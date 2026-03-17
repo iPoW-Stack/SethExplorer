@@ -1,3 +1,5 @@
+const SETH_REPO_URL = 'https://github.com/iPoW-Stack/SethExplorer';
+
 export default function getApiVersionUrl(version: string | undefined): string | undefined {
   if (!version) {
     return;
@@ -6,8 +8,8 @@ export default function getApiVersionUrl(version: string | undefined): string | 
   const [ tag, commit ] = version.split('.+commit.');
 
   if (commit) {
-    return `https://github.com/blockscout/blockscout/commit/${ commit }`;
+    return `${ SETH_REPO_URL }/commit/${ commit }`;
   }
 
-  return `https://github.com/blockscout/blockscout/tree/${ tag }`;
+  return `${ SETH_REPO_URL }/tree/${ tag }`;
 }

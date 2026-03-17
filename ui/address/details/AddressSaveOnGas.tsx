@@ -79,7 +79,7 @@ const AddressSaveOnGas = ({ gasUsed, address }: Props) => {
       <TextSeparator/>
       <Skeleton loading={ query.isPlaceholderData } display="flex" alignItems="center" columnGap={{ base: 1, lg: 2 }}>
         <Image src="/static/gas_hawk_logo.svg" w="15px" h="20px" alt="GasHawk logo"/>
-        <Link href="https://www.gashawk.io?utm_source=blockscout&utm_medium=address" fontSize="sm" external>
+        <Link href="https://www.gashawk.io?utm_source=seth&utm_medium=address" fontSize="sm" external>
           Save { percent.toLocaleString(undefined, { maximumFractionDigits: 0 }) }% with GasHawk
         </Link>
       </Skeleton>

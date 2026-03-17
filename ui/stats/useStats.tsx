@@ -6,6 +6,7 @@ import type { StatsIntervalIds } from 'types/client/stats';
 import type { ExternalChainExtended } from 'types/externalChains';
 
 import useApiQuery from 'lib/api/useApiQuery';
+import { isStatsServiceEnabled } from 'lib/settings/useSethStrict';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { STATS_CHARTS } from 'stubs/stats';
 
@@ -27,9 +28,11 @@ interface Props {
 
 export default function useStats({ chain }: Props = {}) {
   const router = useRouter();
+  const statsServiceEnabled = isStatsServiceEnabled();
 
   const linesQuery = useApiQuery('stats:lines', {
     queryOptions: {
+      enabled: statsServiceEnabled,
       placeholderData: STATS_CHARTS,
       refetchInterval: STATS_REFRESH_INTERVAL_MS,
       refetchIntervalInBackground: true,
@@ -38,7 +41,7 @@ export default function useStats({ chain }: Props = {}) {
   });
   const fallbackDailyTxsQuery = useApiQuery('general:stats_charts_txs', {
     queryOptions: {
-      enabled: linesQuery.isError,
+      enabled: !statsServiceEnabled || linesQuery.isError,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       refetchInterval: STATS_REFRESH_INTERVAL_MS,
@@ -48,10 +51,12 @@ export default function useStats({ chain }: Props = {}) {
     chain,
   });
 
-  const isFallbackMode = linesQuery.isError;
+  const isFallbackMode = !statsServiceEnabled || linesQuery.isError;
   const data = isFallbackMode ? getFallbackLineCharts() : linesQuery.data;
-  const isError = linesQuery.isError && fallbackDailyTxsQuery.isError;
-  const isPlaceholderData = linesQuery.isPlaceholderData || (linesQuery.isError && fallbackDailyTxsQuery.isPlaceholderData);
+  const isError = statsServiceEnabled ? (linesQuery.isError && fallbackDailyTxsQuery.isError) : false;
+  const isPlaceholderData = statsServiceEnabled ?
+    (linesQuery.isPlaceholderData || (linesQuery.isError && fallbackDailyTxsQuery.isPlaceholderData)) :
+    false;
 
   const [ currentSection, setCurrentSection ] = useState('all');
   const [ filterQuery, setFilterQuery ] = useState('');

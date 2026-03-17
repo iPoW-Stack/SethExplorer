@@ -3,6 +3,8 @@ import React from 'react';
 
 import type { BlockQuery } from 'ui/block/useBlockQuery';
 
+import { route } from 'nextjs-routes';
+
 import { Button } from 'toolkit/chakra/button';
 import { Link } from 'toolkit/chakra/link';
 import CopyToClipboard from 'ui/shared/CopyToClipboard';
@@ -59,6 +61,17 @@ interface Props {
 
 const StrictBlockDetailPage = ({ blockQuery, heightOrHash }: Props) => {
   const { state, title, blockHeight, minedBy, minedByHref, minedAgo, overviewRows, gasRows, refetch } = useStrictBlockDetailData({ blockQuery, heightOrHash });
+  const numericBlockHeight = Number.parseInt(blockHeight, 10);
+  const prevBlockHref = Number.isFinite(numericBlockHeight) && numericBlockHeight > 0 ?
+    route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: String(numericBlockHeight - 1) } }) :
+    undefined;
+  const nextBlockHref = Number.isFinite(numericBlockHeight) ?
+    route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: String(numericBlockHeight + 1) } }) :
+    undefined;
+  const basicInfoRows = overviewRows.filter((row) =>
+    [ 'Block Height', 'Transaction Pool', 'Timestamp', 'Transactions' ].includes(row.label),
+  );
+  const consensusRows = overviewRows.filter((row) => ![ 'Block Height', 'Transaction Pool', 'Timestamp', 'Transactions' ].includes(row.label));
 
   return (
     <Box className="seth-page-shell">
@@ -81,42 +94,77 @@ const StrictBlockDetailPage = ({ blockQuery, heightOrHash }: Props) => {
       ) }
 
       <Box borderBottomWidth="1px" borderBottomColor="seth.border" pb={ 4 } mb={ 5 }>
-        <Flex alignItems="center" gap={ 4 }>
-          <Flex
-            boxSize="48px"
-            borderRadius="xl"
-            bg="linear-gradient(135deg, #f59e0b 0%, #f97316 100%)"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <IconSvg name="block" boxSize={ 6 } color="#111827"/>
+        <Flex alignItems="center" gap={ 4 } justifyContent="space-between" flexWrap="wrap">
+          <Flex alignItems="center" gap={ 4 }>
+            <Flex
+              boxSize="48px"
+              borderRadius="xl"
+              bg="linear-gradient(135deg, #f59e0b 0%, #f97316 100%)"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <IconSvg name="block" boxSize={ 6 } color="#111827"/>
+            </Flex>
+            <Box>
+              <Text data-testid="strict-block-detail-title" fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>
+                { title } <Box as="span" color="gray.400">#{ blockHeight }</Box>
+              </Text>
+              <Text fontSize="sm" color="text.secondary">
+                Mined by{ ' ' }
+                { minedByHref ? <Link href={ minedByHref } data-testid="strict-block-detail-miner-link" noIcon color="seth.primary">{ minedBy }</Link> : <Box as="span" color="seth.primary">{ minedBy }</Box> }
+                { ' - ' }
+                { minedAgo }
+              </Text>
+            </Box>
           </Flex>
-          <Box>
-            <Text data-testid="strict-block-detail-title" fontSize="2xl" lineHeight="1.2" fontWeight={ 700 }>
-              { title } <Box as="span" color="gray.400">#{ blockHeight }</Box>
-            </Text>
-            <Text fontSize="sm" color="text.secondary">
-              Mined by{ ' ' }
-              { minedByHref ? <Link href={ minedByHref } data-testid="strict-block-detail-miner-link" noIcon color="seth.primary">{ minedBy }</Link> : <Box as="span" color="seth.primary">{ minedBy }</Box> }
-              { ' - ' }
-              { minedAgo }
-            </Text>
-          </Box>
+
+          <Flex
+            gap={ 2 }
+            alignItems="center"
+            justifyContent="flex-end"
+          >
+            <Button
+              asChild={ Boolean(prevBlockHref) }
+              size="xs"
+              variant="outline"
+              disabled={ !prevBlockHref }
+              data-testid="strict-block-prev-link"
+            >
+              { prevBlockHref ? <a href={ prevBlockHref }>Prev</a> : <span>Prev</span> }
+            </Button>
+            <Button
+              asChild={ Boolean(nextBlockHref) }
+              size="xs"
+              variant="outline"
+              disabled={ !nextBlockHref }
+              data-testid="strict-block-next-link"
+            >
+              { nextBlockHref ? <a href={ nextBlockHref }>Next</a> : <span>Next</span> }
+            </Button>
+          </Flex>
         </Flex>
       </Box>
 
-      <Box className="seth-panel seth-panel-hover" borderWidth="1px" borderColor={ borderColor } overflow="hidden" mb={ 4 }>
+      <Box
+        className="seth-panel seth-panel-hover seth-fade-in-up"
+        style={{ '--seth-index': 0 } as React.CSSProperties}
+        borderWidth="1px"
+        borderColor={ borderColor }
+        overflow="hidden"
+        mb={ 4 }
+      >
         <Box px={ 6 } py={ 4 } borderBottomWidth="1px" borderBottomColor={ borderColor }>
           <Text fontSize="lg" lineHeight="1.2" fontWeight={ 700 }>Overview</Text>
         </Box>
         <VStack alignItems="stretch" gap={ 0 } px={ 6 } py={ 4 }>
-          { overviewRows.map((row, index) => (
+          <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider" mb={ 1 }>
+            Block Info
+          </Text>
+          { basicInfoRows.map((row) => (
             <Grid
               key={ row.label }
               gridTemplateColumns={{ base: '1fr', lg: '240px 1fr' }}
               py={ 2.5 }
-              borderTopWidth={ index === 3 ? '1px' : 0 }
-              borderTopColor={ borderColor }
             >
               <Flex alignItems="center" gap={ 2 } color="gray.400">
                 <IconSvg name={ getOverviewIcon(row.label) } boxSize={ 4 } opacity={ 0.55 }/>
@@ -139,10 +187,52 @@ const StrictBlockDetailPage = ({ blockQuery, heightOrHash }: Props) => {
               </Flex>
             </Grid>
           )) }
+
+          { consensusRows.length > 0 && (
+            <>
+              <Box borderTopWidth="1px" borderTopColor="seth.border" my={ 3 }/>
+              <Text fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider" mb={ 1 }>
+                Consensus & Miner
+              </Text>
+              { consensusRows.map((row) => (
+                <Grid
+                  key={ row.label }
+                  gridTemplateColumns={{ base: '1fr', lg: '240px 1fr' }}
+                  py={ 2.5 }
+                >
+                  <Flex alignItems="center" gap={ 2 } color="gray.400">
+                    <IconSvg name={ getOverviewIcon(row.label) } boxSize={ 4 } opacity={ 0.55 }/>
+                    <Text>{ row.label }</Text>
+                  </Flex>
+                  <Flex alignItems="center" gap={ 2 } minW={ 0 }>
+                    { row.href ? (
+                      <Link
+                        noIcon
+                        href={ row.href }
+                        data-testid={ toRowTestId(row.label) }
+                        color={ row.accent ? 'seth.primary' : 'gray.100' }
+                      >
+                        { row.value }
+                      </Link>
+                    ) : (
+                      <Text color={ row.accent ? 'seth.primary' : 'gray.100' }>{ row.value }</Text>
+                    ) }
+                    { row.copyValue && <CopyToClipboard text={ row.copyValue } boxSize={ 4 }/> }
+                  </Flex>
+                </Grid>
+              )) }
+            </>
+          ) }
         </VStack>
       </Box>
 
-      <Box className="seth-panel seth-panel-soft" borderWidth="1px" borderColor={ borderColor } overflow="hidden">
+      <Box
+        className="seth-panel seth-panel-soft seth-fade-in-up"
+        style={{ '--seth-index': 1 } as React.CSSProperties}
+        borderWidth="1px"
+        borderColor={ borderColor }
+        overflow="hidden"
+      >
         <Box px={ 6 } py={ 4 } borderBottomWidth="1px" borderBottomColor={ borderColor }>
           <Text fontSize="lg" lineHeight="1.2" fontWeight={ 700 }>Gas Info</Text>
         </Box>

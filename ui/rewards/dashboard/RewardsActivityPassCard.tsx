@@ -13,7 +13,7 @@ export default function RewardsActivityPassCard() {
 
   const activityPassUrl = config.apis.rewards ?
     // eslint-disable-next-line max-len
-    `${ config.apis.rewards.endpoint }/?tab=spend&id=${ rewardsConfigQuery.data?.rewards?.blockscout_activity_pass_id }&utm_source=blockscout&utm_medium=tasks` :
+    `${ config.apis.rewards.endpoint }/?tab=spend&id=${ rewardsConfigQuery.data?.rewards?.blockscout_activity_pass_id }&utm_source=seth&utm_medium=tasks` :
     undefined;
 
   return (
@@ -34,8 +34,8 @@ export default function RewardsActivityPassCard() {
           <Link external href={ activityPassUrl } loading={ rewardsConfigQuery.isLoading }>
             Activity pass
           </Link>{ ' ' }
-          then engage with various Blockscout products and features to earn Merits every day!{ ' ' }
-          <Link external href="https://docs.blockscout.com/using-blockscout/merits/activity-pass">
+          then engage with various Seth Explorer products and features to earn Merits every day!{ ' ' }
+          <Link external href="https://seth.app/merits/activity-pass">
             Learn more
           </Link>
         </Text>

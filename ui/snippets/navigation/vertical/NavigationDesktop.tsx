@@ -90,10 +90,12 @@ const StrictNavItem = ({ item }: { item: NavItemInternal }) => {
         href={ route(item.nextRoute) }
         noIcon
         w="100%"
+        position="relative"
         fontSize="14px"
         lineHeight="20px"
         fontWeight={ 500 }
-        px={ 4 }
+        pl={ item.isActive ? 3.5 : 4 }
+        pr={ 4 }
         py={ 3 }
         borderRadius="8px"
         borderWidth="1px"
@@ -101,6 +103,17 @@ const StrictNavItem = ({ item }: { item: NavItemInternal }) => {
         bgColor={ item.isActive ? 'rgba(0, 255, 163, 0.1)' : 'transparent' }
         boxShadow={ item.isActive ? '0 0 15px rgba(0, 255, 163, 0.1)' : 'none' }
         color={ item.isActive ? 'seth.primary' : 'gray.400' }
+        _before={ item.isActive ? {
+          content: '""',
+          position: 'absolute',
+          left: '0',
+          top: '10px',
+          bottom: '10px',
+          width: '2px',
+          borderRadius: 'full',
+          bgColor: 'seth.primary',
+          boxShadow: '0 0 10px rgba(0, 255, 148, 0.4)',
+        } : undefined }
         _hover={{
           color: item.isActive ? 'seth.primary' : 'white',
           bgColor: item.isActive ? 'rgba(0, 255, 163, 0.1)' : 'rgba(255, 255, 255, 0.05)',
@@ -242,7 +255,7 @@ const NavigationDesktop = () => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              SETH
+              SETH Explorer
             </Text>
           </Link>
         ) : (

@@ -20,8 +20,8 @@ const getMicroserviceSwaggerUrl = (api: ApiPropsBase) => `${ api.endpoint }${ ap
 
 export const REST_API_SECTIONS = [
   feature.isEnabled && {
-    id: 'blockscout-core-api',
-    title: 'Blockscout core API',
+    id: 'seth-core-api',
+    title: 'Seth Explorer core API',
     swagger: {
       url: feature.coreApiSwaggerUrl,
       requestInterceptor: (req: SwaggerRequest) => {
@@ -29,15 +29,12 @@ export const REST_API_SECTIONS = [
           return req;
         }
 
-        const DEFAULT_SERVER = 'blockscout.com/poa/core';
-        const DEFAULT_SERVER_NEW = 'eth.blockscout.com';
-
         if (!req.loadSpec) {
-          const newUrl = new URL(
-            req.url.includes(DEFAULT_SERVER) ?
-              req.url.replace(DEFAULT_SERVER, config.apis.general.host) :
-              req.url.replace(DEFAULT_SERVER_NEW, config.apis.general.host),
-          );
+          const newUrl = new URL(req.url);
+
+          if (config.apis.general.host && newUrl.host !== config.apis.general.host) {
+            newUrl.host = config.apis.general.host;
+          }
 
           newUrl.protocol = config.apis.general.protocol + ':';
 

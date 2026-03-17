@@ -24,7 +24,7 @@ const RollupStageBadge = ({ chainConfig = config, ...props }: Props) => {
       const tooltipContent = (
         <>
           The decentralization and maturity of the chain. Learn more at{ ' ' }
-          <Link href="https://l2beat.com?utm_source=blockscout&utm_medium=explorer" external>
+          <Link href="https://l2beat.com?utm_source=seth&utm_medium=explorer" external>
             l2beat.com
           </Link>
         </>

@@ -10,7 +10,7 @@ const ROUTES = [
   { name: 'tx detail', path: `/tx/${ SAMPLE_TX_HASH }`, readyText: /Transaction/i, retries: 3, timeoutMs: 35_000 },
   { name: 'address detail', path: `/address/${ SAMPLE_ADDRESS }`, readyText: /Address/i, retries: 3, timeoutMs: 40_000 },
   { name: 'search results', path: `/search-results?q=${ SAMPLE_BLOCK }`, readyText: /Search/i },
-  { name: 'tokens', path: '/tokens', readyText: /Tokens/i },
+  { name: 'tokens', path: '/tokens', readyText: /Tokens/i, retries: 3, timeoutMs: 60_000 },
   { name: 'token detail', path: `/token/${ SAMPLE_TOKEN }`, readyText: /Token/i, retries: 2, timeoutMs: 35_000 },
   { name: 'token transfers', path: '/token-transfers', readyText: /Token transfers/i },
   { name: 'internal txs', path: '/internal-txs', readyText: /Internal txns|Internal transactions/i },

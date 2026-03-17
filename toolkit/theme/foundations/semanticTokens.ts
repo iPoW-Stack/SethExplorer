@@ -30,7 +30,7 @@ const semanticTokens: ThemingConfig['semanticTokens'] = {
         bg: { value: { _light: '{colors.green.100}', _dark: '{colors.green.800}' } },
       },
       scrollbar: {
-        thumb: { value: { _light: '{colors.blackAlpha.300}', _dark: 'rgba(0, 255, 163, 0.55)' } },
+        thumb: { value: { _light: '{colors.blackAlpha.300}', _dark: 'rgba(0, 255, 148, 0.5)' } },
       },
     },
 

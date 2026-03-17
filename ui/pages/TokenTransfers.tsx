@@ -5,6 +5,7 @@ import type { TokenType } from 'types/api/token';
 
 import ActionBar, { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
+import ExplorerEmptyState from 'ui/shared/emptyState/ExplorerEmptyState';
 import PopoverFilter from 'ui/shared/filters/PopoverFilter';
 import TokenTypeFilter from 'ui/shared/filters/TokenTypeFilter';
 import PageTitle from 'ui/shared/Page/PageTitle';
@@ -60,6 +61,15 @@ const TokenTransfers = () => {
         isError={ query.isError }
         itemsNum={ query.data?.items.length }
         emptyText="There are no token transfers."
+        emptyState={
+          <ExplorerEmptyState
+            testId="token-transfers-empty-state"
+            iconName="tokens"
+            title="No token transfers yet"
+            description="Token transfer records will appear here when indexed token activity is available."
+            primaryAction={{ label: 'Open Tokens', href: '/tokens' }}
+          />
+        }
         actionBar={ actionBar }
         hasActiveFilters={ Boolean(typeFilter.length) }
         emptyStateProps={{

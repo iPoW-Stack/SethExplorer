@@ -10,6 +10,7 @@ type Props = {
   isError: boolean;
   itemsNum?: number;
   emptyText?: React.ReactNode;
+  emptyState?: React.ReactNode;
   actionBar?: React.ReactNode;
   showActionBarIfEmpty?: boolean;
   showActionBarIfError?: boolean;
@@ -48,7 +49,7 @@ const DataListDisplay = (props: Props) => {
     return (
       <Box className={ panelClassName }>
         { props.showActionBarIfEmpty && props.actionBar }
-        { props.emptyText && <Text>{ props.emptyText }</Text> }
+        { props.emptyState || (props.emptyText && <Text>{ props.emptyText }</Text>) }
       </Box>
     );
   }

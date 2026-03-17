@@ -10,7 +10,7 @@ export default function addExternalLibraryWarningDecoration(model: monaco.editor
     hoverMessage: [
       { value: '**This is an external library linked to the verified contract**' },
       // eslint-disable-next-line max-len
-      { value: 'The linked library source code only affects the bytecode part with external `DELEGATECALL` to the library and it is not possible to automatically ensure that provided library is really the one deployed at specified address. If you want to be sure, check the source code of the library at the given address. (See [issue](https://github.com/blockscout/blockscout-rs/issues/532) for more details)',
+      { value: 'The linked library source code only affects bytecode paths that use external `DELEGATECALL`. It is not possible to automatically verify that the provided library source exactly matches the deployed library at that address. For high-assurance verification, inspect the library source directly on its address page.',
       },
     ],
   };

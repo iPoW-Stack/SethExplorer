@@ -231,8 +231,8 @@ const LinkShowcase = () => {
           </Sample>
           <Sample label="External link">
             <LinkBox p={ 2 } display="flex" flexDirection="column" columnGap={ 2 } borderWidth="1px" borderColor="border.divider" borderRadius="base">
-              <LinkOverlay href="https://blockscout.com" external>Main link</LinkOverlay>
-              <Link href="https://blockscout.com/txs" external>Inner link</Link>
+              <LinkOverlay href="https://explorer.seth.app" external>Main link</LinkOverlay>
+              <Link href="https://explorer.seth.app/txs" external>Inner link</Link>
             </LinkBox>
           </Sample>
         </SamplesStack>

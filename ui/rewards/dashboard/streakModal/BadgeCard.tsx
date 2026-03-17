@@ -69,7 +69,7 @@ export default function BadgeCard({ badge, currentStreak, index }: Props) {
             if (badge.is_whitelisted) {
               return (
                 <Link
-                  href={ `https://badges.blockscout.com/mint/${ badge.address }` }
+                  href={ `https://seth.app/badges/mint/${ badge.address }` }
                   external
                   textStyle="sm"
                 >

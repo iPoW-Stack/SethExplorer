@@ -13,7 +13,7 @@ const MarketplaceAppIntegrationIcon = ({ external, internalWallet }: Props) => {
   const [ icon, iconColor, text, boxSize ] = React.useMemo(() => {
     let icon: IconName = 'integration/partial';
     let color = 'icon.secondary';
-    let text = 'This app opens in Blockscout without Blockscout wallet functionality. Use your external web3 wallet to connect directly to this application';
+    let text = 'This app opens in Seth Explorer without integrated wallet functionality. Use your external web3 wallet to connect directly to this application';
     let boxSize = 5;
 
     if (external) {
@@ -24,7 +24,7 @@ const MarketplaceAppIntegrationIcon = ({ external, internalWallet }: Props) => {
     } else if (internalWallet) {
       icon = 'integration/full';
       color = 'green.500';
-      text = 'This app opens in Blockscout and your Blockscout wallet connects automatically';
+      text = 'This app opens in Seth Explorer and your connected wallet is reused automatically';
     }
 
     return [ icon, color, text, boxSize ];

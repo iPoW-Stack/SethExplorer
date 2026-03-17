@@ -48,6 +48,10 @@ const CopyToClipboard = (props: Props) => {
       loadingSkeleton={ isLoading }
       variant="icon_secondary"
       size="2xs"
+      transitionProperty="transform, background-color, color"
+      transitionDuration="normal"
+      transform={ hasCopied ? 'scale(1.08)' : 'scale(1)' }
+      color={ hasCopied ? 'seth.primary' : undefined }
       { ...rest }
     >
       <IconSvg name={ iconName }/>

@@ -15,7 +15,7 @@ import useWeb3Wallet from 'lib/web3/useWallet';
 import { toaster } from 'toolkit/chakra/toaster';
 import { YEAR } from 'toolkit/utils/consts';
 
-function composeMessage(address: string, nonceBlockscout: string, nonceRewards: string) {
+function composeMessage(address: string, nonceExplorer: string, nonceRewards: string) {
   const urlObj = window.location.hostname === 'localhost' && config.apis.rewards ?
     new URL(config.apis.rewards.endpoint) :
     window.location;
@@ -24,12 +24,12 @@ function composeMessage(address: string, nonceBlockscout: string, nonceRewards: 
     `${ urlObj.hostname } wants you to sign in with your Ethereum account:`,
     address,
     '',
-    `Sign in/up to Blockscout Account V2 & Blockscout Merits program. Merits nonce: ${ nonceRewards }.`,
+    `Sign in/up to Seth Explorer Account & Seth Merits program. Merits nonce: ${ nonceRewards }.`,
     '',
     `URI: ${ urlObj.origin }`,
     'Version: 1',
     `Chain ID: ${ config.chain.id }`,
-    `Nonce: ${ nonceBlockscout }`,
+    `Nonce: ${ nonceExplorer }`,
     `Issued At: ${ new Date().toISOString() }`,
     `Expiration Time: ${ new Date(Date.now() + YEAR).toISOString() }`,
   ].join('\n');

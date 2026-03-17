@@ -51,7 +51,7 @@ const AddressMultichainButton = ({ item, addressHash, onClick, isFirst, isLast }
   try {
     const portfolioUrlString = item.urlTemplate.replace(TEMPLATE_ADDRESS, addressHash);
     const portfolioUrl = new URL(portfolioUrlString);
-    portfolioUrl.searchParams.append('utm_source', 'blockscout');
+    portfolioUrl.searchParams.append('utm_source', 'seth');
     portfolioUrl.searchParams.append('utm_medium', 'address');
     const dappId = item.dappId;
     const isExternal = typeof dappId !== 'string';

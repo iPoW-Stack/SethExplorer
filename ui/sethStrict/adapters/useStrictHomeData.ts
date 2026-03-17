@@ -1,23 +1,26 @@
 import React from 'react';
 
+import type { StrictDataState, StrictHomeBlockRow, StrictHomeStatCard, StrictHomeTxRow, StrictRealtimeState } from './types';
 import type { HomeStats } from 'types/api/stats';
 import type { Transaction } from 'types/api/transaction';
 
 import { route } from 'nextjs-routes';
 
 import useApiQuery from 'lib/api/useApiQuery';
+import { getLiveHeadDecision } from 'lib/seth/liveHeadDecision';
 import { formatSethPoolIndexCompact } from 'lib/seth/poolIndex';
-import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
+import { getSethLiveHeadSwitchBlocks, getSethLiveHeadSwitchSeconds, getSethStrictDataSource } from 'lib/settings/useSethStrict';
 import { BLOCK } from 'stubs/block';
 import { HOMEPAGE_STATS } from 'stubs/stats';
 import { TX } from 'stubs/tx';
+import useLiveHeadQuery from 'ui/shared/liveHead/useLiveHeadQuery';
 
 import { HOME_BLOCKS, HOME_STATS, HOME_TXS } from '../data';
-import type { StrictDataState, StrictHomeBlockRow, StrictHomeStatCard, StrictHomeTxRow } from './types';
 import { formatAge, formatCompactInteger, formatUsd, formatWeiToEth, getErrorMessage, shortHash } from './utils';
 
 interface StrictHomeData {
   state: StrictDataState;
+  realtime?: StrictRealtimeState;
   stats: Array<StrictHomeStatCard>;
   blocks: Array<StrictHomeBlockRow>;
   txs: Array<StrictHomeTxRow>;
@@ -27,6 +30,25 @@ type StrictHomeLatestBlockSnapshot = {
   height?: number | string | null;
   pool_index?: number | null;
 };
+
+function getRealtimeLabel(
+  status: StrictRealtimeState['status'],
+  source: StrictRealtimeState['source'],
+) {
+  if (status === 'live') {
+    return source === 'block-number-fallback' ? 'Live (RPC proxy)' : 'Live (RPC)';
+  }
+
+  if (status === 'indexed') {
+    return 'Indexed';
+  }
+
+  if (status === 'lagging') {
+    return 'Lagging';
+  }
+
+  return 'Stalled';
+}
 
 const LIVE_STATS_FALLBACK: Array<StrictHomeStatCard> = [
   {
@@ -59,7 +81,7 @@ const LIVE_STATS_FALLBACK: Array<StrictHomeStatCard> = [
   },
 ];
 
-function mapStats(apiData?: HomeStats, latestBlock?: StrictHomeLatestBlockSnapshot): Array<StrictHomeStatCard> {
+function mapStats(apiData?: HomeStats, latestBlock?: StrictHomeLatestBlockSnapshot, latestBlockSubtextOverride?: string): Array<StrictHomeStatCard> {
   if (!apiData) {
     return LIVE_STATS_FALLBACK;
   }
@@ -67,9 +89,9 @@ function mapStats(apiData?: HomeStats, latestBlock?: StrictHomeLatestBlockSnapsh
   const latestBlockHeight = latestBlock?.height !== null && latestBlock?.height !== undefined ?
     String(latestBlock.height) :
     formatIntegerWithFallback(apiData.total_blocks, HOME_STATS[3].value.replace('#', ''));
-  const latestBlockSubtext = latestBlock?.pool_index !== null && latestBlock?.pool_index !== undefined ?
+  const latestBlockSubtext = latestBlockSubtextOverride || (latestBlock?.pool_index !== null && latestBlock?.pool_index !== undefined ?
     formatSethPoolIndexCompact(latestBlock.pool_index) :
-    `${ apiData.average_block_time.toFixed(2) }s avg time`;
+    `${ apiData.average_block_time.toFixed(2) }s avg time`);
 
   return [
     {
@@ -155,6 +177,40 @@ export default function useStrictHomeData(): StrictHomeData {
     },
   });
 
+  const indexerTopBlockHeight = blocksQuery.data?.[0]?.height ?? null;
+  const indexerTopBlockTimestamp = blocksQuery.data?.[0]?.timestamp ?? null;
+  const liveHeadQuery = useLiveHeadQuery({
+    enabled: !isStub,
+    indexerHeight: indexerTopBlockHeight,
+    indexerTimestamp: indexerTopBlockTimestamp,
+  });
+  const liveHeadDecision = React.useMemo(() => getLiveHeadDecision({
+    liveHead: liveHeadQuery.data,
+    indexerHeight: indexerTopBlockHeight,
+    switchBlocks: getSethLiveHeadSwitchBlocks(),
+    switchSeconds: getSethLiveHeadSwitchSeconds(),
+  }), [
+    indexerTopBlockHeight,
+    liveHeadQuery.data,
+  ]);
+
+  const realtime = React.useMemo<StrictRealtimeState | undefined>(() => {
+    if (isStub) {
+      return undefined;
+    }
+
+    return {
+      status: liveHeadDecision.status,
+      source: liveHeadQuery.source,
+      label: getRealtimeLabel(liveHeadDecision.status, liveHeadQuery.source),
+      headHeight: liveHeadDecision.headHeight,
+      lagBlocks: liveHeadDecision.lagBlocks,
+      lagSeconds: liveHeadDecision.lagSeconds,
+      sourceState: liveHeadDecision.sourceState,
+      shouldUseLiveHead: liveHeadDecision.shouldUseLiveHead,
+    };
+  }, [ isStub, liveHeadDecision, liveHeadQuery.source ]);
+
   const state: StrictDataState = React.useMemo(() => ({
     mode: dataSource,
     isLoading: isStub ? false : (
@@ -162,7 +218,7 @@ export default function useStrictHomeData(): StrictHomeData {
       statsQuery.isPending || blocksQuery.isPending || txsQuery.isPending
     ),
     isError: isStub ? false : (statsQuery.isError || blocksQuery.isError || txsQuery.isError),
-    errorMessage: isStub ? undefined : getErrorMessage(statsQuery.error || blocksQuery.error || txsQuery.error),
+    errorMessage: isStub ? undefined : getErrorMessage(statsQuery.error || blocksQuery.error || txsQuery.error || liveHeadQuery.error),
   }), [
     blocksQuery.error,
     blocksQuery.isError,
@@ -178,14 +234,23 @@ export default function useStrictHomeData(): StrictHomeData {
     txsQuery.isError,
     txsQuery.isPending,
     txsQuery.isPlaceholderData,
+    liveHeadQuery.error,
   ]);
 
   const stats = React.useMemo<Array<StrictHomeStatCard>>(() => {
     if (isStub) {
       return HOME_STATS;
     }
-    return mapStats(statsQuery.data, blocksQuery.data?.[0]);
-  }, [ blocksQuery.data, isStub, statsQuery.data ]);
+    const latestBlockFromLive = liveHeadDecision.shouldUseLiveHead && liveHeadDecision.headHeight !== null ? {
+      height: liveHeadDecision.headHeight,
+      pool_index: null,
+    } : blocksQuery.data?.[0];
+    return mapStats(
+      statsQuery.data,
+      latestBlockFromLive,
+      liveHeadDecision.shouldUseLiveHead ? 'Live RPC' : undefined,
+    );
+  }, [ blocksQuery.data, isStub, liveHeadDecision.headHeight, liveHeadDecision.shouldUseLiveHead, statsQuery.data ]);
 
   const blocks = React.useMemo<Array<StrictHomeBlockRow>>(() => {
     if (isStub) {
@@ -246,9 +311,17 @@ export default function useStrictHomeData(): StrictHomeData {
       from: shortHash(item.from?.name || item.from?.hash),
       fromHref: item.from?.hash ? route({ pathname: '/address/[hash]', query: { hash: item.from.hash } }) : undefined,
       to: shortHash(item.to?.name || item.to?.hash || item.created_contract?.hash),
-      toHref: item.to?.hash ?
-        route({ pathname: '/address/[hash]', query: { hash: item.to.hash } }) :
-        (item.created_contract?.hash ? route({ pathname: '/address/[hash]', query: { hash: item.created_contract.hash } }) : undefined),
+      toHref: (() => {
+        if (item.to?.hash) {
+          return route({ pathname: '/address/[hash]', query: { hash: item.to.hash } });
+        }
+
+        if (item.created_contract?.hash) {
+          return route({ pathname: '/address/[hash]', query: { hash: item.created_contract.hash } });
+        }
+
+        return undefined;
+      })(),
       value: formatWeiToEth(item.value),
       icon: mapTxMethodIcon(item),
     }));
@@ -256,6 +329,7 @@ export default function useStrictHomeData(): StrictHomeData {
 
   return {
     state,
+    realtime,
     stats,
     blocks,
     txs,

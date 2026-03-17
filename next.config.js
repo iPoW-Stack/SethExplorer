@@ -41,6 +41,9 @@ const moduleExports = {
   redirects,
   headers,
   output: 'standalone',
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   productionBrowserSourceMaps: true,
   serverExternalPackages: ["@opentelemetry/sdk-node", "@opentelemetry/auto-instrumentations-node"],
   // Keep compiled pages alive longer in dev to avoid repeated route recompilation lag

@@ -26,7 +26,7 @@ const RewardsButton = ({ variant = 'header', size }: Props) => {
 
   return (
     <Tooltip
-      content="Earn Merits for using Blockscout"
+      content="Earn Merits for using Seth Explorer"
       openDelay={ 500 }
       disabled={ isMobile || isLoading || isAuth }
     >

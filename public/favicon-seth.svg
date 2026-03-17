@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="sethIconGradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00EFA1"/>
+      <stop offset="1" stop-color="#14C2A3"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#02070A"/>
+  <path d="M9 34h46c-.5 12.3-10.7 22-23 22S9.5 46.3 9 34z" fill="url(#sethIconGradient)"/>
+  <path d="M10.5 31.5c.8-6.7 4.1-12.7 9.1-16.9C24.2 10.8 30 8.5 36 8.8c5.8.3 11.3 3 15.3 7.4-5.8-.2-10.8 1-14.8 3.7-3.6 2.4-6 5.8-7.2 10.2h-18.8z" fill="url(#sethIconGradient)"/>
+  <path d="M30.5 31.5c1-2.5 2.8-4.6 5.2-6.2 3.1-2.1 7-3 11.6-2.7 2.7.2 5.3.9 7.6 2.1-2-3.2-5-5.7-8.5-7.2-4.3-1.8-9.2-1.9-13.5-.2-4.6 1.9-8.1 5.7-9.7 10.5-.4 1.2-.7 2.4-.8 3.7h8.1z" fill="#02070A"/>
+  <circle cx="32" cy="32" r="30" stroke="url(#sethIconGradient)" stroke-opacity=".35"/>
+</svg>

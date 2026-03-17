@@ -60,12 +60,14 @@ class MyDocument extends Document {
           ) }
 
           { /* FAVICON */ }
-          <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png"/>
-          <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png"/>
-          <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon/favicon-48x48.png"/>
-          <link rel="shortcut icon" href="/assets/favicon/favicon.ico"/>
-          <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon-180x180.png"/>
-          <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/android-chrome-192x192.png"/>
+          <link rel="icon" type="image/svg+xml" href="/favicon-seth.svg?v=seth-20260302-r2"/>
+          <link rel="icon" href="/favicon-seth.ico?v=seth-20260302-r2"/>
+          <link rel="shortcut icon" href="/favicon.ico?v=seth-20260302-r2"/>
+          <link rel="apple-touch-icon" href="/apple-touch-icon-seth.png?v=seth-20260302-r2"/>
+          <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=seth-20260302-r2"/>
+          <link rel="icon" type="image/png" sizes="16x16" href="/favicon-seth-16x16.png?v=seth-20260302-r2"/>
+          <link rel="icon" type="image/png" sizes="32x32" href="/favicon-seth-32x32.png?v=seth-20260302-r2"/>
+          <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/android-chrome-192x192.png?v=seth-20260302-r2"/>
           <link rel="preload" as="image" href={ svgSprite.href }/>
         </Head>
         <body>

@@ -16,7 +16,7 @@ import type { FontFace } from 'use-font-face-observer';
 import useFontFaceObserver from 'use-font-face-observer';
 
 import { Tooltip } from 'toolkit/chakra/tooltip';
-import { BODY_TYPEFACE, HEADING_TYPEFACE } from 'toolkit/theme/foundations/typography';
+import { BODY_TYPEFACE, HEADING_TYPEFACE, MONO_TYPEFACE } from 'toolkit/theme/foundations/typography';
 
 const TAIL_LENGTH = 4;
 const HEAD_MIN_LENGTH = 4;
@@ -37,6 +37,7 @@ const HashStringShortenDynamic = ({ hash, fontWeight = '400', noTooltip, tailLen
   const isFontFaceLoaded = useFontFaceObserver([
     { family: BODY_TYPEFACE, weight: String(fontWeight) as FontFace['weight'] },
     { family: HEADING_TYPEFACE, weight: String(fontWeight) as FontFace['weight'] },
+    { family: MONO_TYPEFACE.split(',')[0].trim(), weight: String(fontWeight) as FontFace['weight'] },
   ]);
 
   const calculateString = useCallback(() => {
@@ -92,7 +93,11 @@ const HashStringShortenDynamic = ({ hash, fontWeight = '400', noTooltip, tailLen
     };
   }, [ calculateString ]);
 
-  const content = <chakra.span ref={ elementRef } as={ as } { ...props }>{ displayedString }</chakra.span>;
+  const content = (
+    <chakra.span ref={ elementRef } as={ as } fontFamily="mono" data-entity-hash="true" { ...props }>
+      { displayedString }
+    </chakra.span>
+  );
   const isTruncated = hash.length !== displayedString.length;
 
   if (isTruncated && !noTooltip) {

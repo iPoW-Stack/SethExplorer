@@ -4,7 +4,15 @@ import { getEnvValue, getExternalAssetFilePath } from './utils';
 const defaultImageUrl = '/static/og_image.png';
 
 const meta = Object.freeze({
-  promoteBlockscoutInTitle: getEnvValue('NEXT_PUBLIC_PROMOTE_BLOCKSCOUT_IN_TITLE') === 'false' ? false : true,
+  promoteBrandInTitle: (() => {
+    const brandTitlePromotion = getEnvValue('NEXT_PUBLIC_PROMOTE_BRAND_IN_TITLE');
+
+    if (brandTitlePromotion !== undefined) {
+      return brandTitlePromotion !== 'false';
+    }
+
+    return true;
+  })(),
   og: {
     description: getEnvValue('NEXT_PUBLIC_OG_DESCRIPTION') || '',
     imageUrl: app.baseUrl + (getExternalAssetFilePath('NEXT_PUBLIC_OG_IMAGE_URL') || defaultImageUrl),

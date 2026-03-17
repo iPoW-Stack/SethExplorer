@@ -6,8 +6,8 @@ import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
 import type { TxQuery } from 'ui/tx/useTxQuery';
 
 import { TX_OVERVIEW_ROWS } from '../data';
-import type { StrictDataState, StrictTxOverviewRow } from './types';
-import { formatAge, formatDateTime, formatWeiToEth, getErrorMessage, shortHash } from './utils';
+import type { StrictDataState, StrictTxGasRow, StrictTxOverviewRow } from './types';
+import { formatAge, formatDateTime, formatInteger, formatWeiToEth, getErrorMessage, shortHash } from './utils';
 
 interface Params {
   txQuery?: TxQuery;
@@ -18,6 +18,7 @@ interface StrictTransactionDetailData {
   state: StrictDataState;
   title: string;
   overviewRows: Array<StrictTxOverviewRow>;
+  gasRows: Array<StrictTxGasRow>;
   refetch?: () => void;
 }
 
@@ -34,6 +35,7 @@ export default function useStrictTransactionDetailData({ txQuery, hash }: Params
       },
       title: 'Transaction Details',
       overviewRows: TX_OVERVIEW_ROWS,
+      gasRows: [],
     };
   }
 
@@ -47,6 +49,7 @@ export default function useStrictTransactionDetailData({ txQuery, hash }: Params
       },
       title: 'Transaction Details',
       overviewRows: [],
+      gasRows: [],
     };
   }
 
@@ -108,6 +111,25 @@ export default function useStrictTransactionDetailData({ txQuery, hash }: Params
     },
   ];
 
+  const gasRows: Array<StrictTxGasRow> = [
+    {
+      label: 'Gas Price',
+      value: tx?.gas_price ? `${ formatInteger(tx.gas_price) } wei` : '-',
+    },
+    {
+      label: 'Gas Used',
+      value: tx?.gas_used ? formatInteger(tx.gas_used) : '-',
+    },
+    {
+      label: 'Gas Limit',
+      value: tx?.gas_limit ? formatInteger(tx.gas_limit) : '-',
+    },
+    {
+      label: 'Base Fee Per Gas',
+      value: tx?.base_fee_per_gas ? `${ formatInteger(tx.base_fee_per_gas) } wei` : '-',
+    },
+  ];
+
   return {
     state: {
       mode: 'live',
@@ -117,7 +139,7 @@ export default function useStrictTransactionDetailData({ txQuery, hash }: Params
     },
     title: 'Transaction Details',
     overviewRows,
+    gasRows,
     refetch: txQuery.refetch,
   };
 }
-

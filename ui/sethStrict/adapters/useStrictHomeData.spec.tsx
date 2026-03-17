@@ -1,19 +1,22 @@
 // @vitest-environment jsdom
 
+import useApiQuery from 'lib/api/useApiQuery';
+import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { renderHook } from 'vitest/lib';
 
 vi.mock('lib/settings/useSethStrict', () => ({
   getSethStrictDataSource: vi.fn(),
+  isSethLiveHeadEnabled: vi.fn(() => false),
+  getSethLiveHeadPollMs: vi.fn(() => 10_000),
+  getSethLiveHeadSwitchBlocks: vi.fn(() => 3),
+  getSethLiveHeadSwitchSeconds: vi.fn(() => 90),
 }));
 
 vi.mock('lib/api/useApiQuery', () => ({
-  default: vi.fn(),
+  'default': vi.fn(),
 }));
-
-import useApiQuery from 'lib/api/useApiQuery';
-import { getSethStrictDataSource } from 'lib/settings/useSethStrict';
 
 import useStrictHomeData from './useStrictHomeData';
 
@@ -112,4 +115,3 @@ describe('useStrictHomeData', () => {
     expect(result.current.txs[0].txHref).toContain('/tx/');
   });
 });
-

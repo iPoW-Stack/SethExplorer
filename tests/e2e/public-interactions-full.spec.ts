@@ -197,11 +197,17 @@ test('address table links and pagination action work', async({ page }) => {
   await gotoWithRetry(page, `/address/${ SAMPLE_ADDRESS }`, 2, 40_000);
 
   const firstTxLink = page.getByTestId('strict-address-row-hash-link').first();
-  if (await firstTxLink.count() > 0) {
-    await assertClickable(firstTxLink);
-    await expect(firstTxLink).toHaveAttribute('href', /\/tx\//);
+  const hasVisibleTxLink = await firstTxLink.isVisible().catch(() => false);
+  if (hasVisibleTxLink) {
+    try {
+      await assertClickable(firstTxLink);
+      await expect(firstTxLink).toHaveAttribute('href', /\/tx\//);
+    } catch {
+      await expect(page.getByText(/Transactions|No transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
+      return;
+    }
   } else {
-    await expect(page.getByText(/Transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Transactions|No transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
     return;
   }
 

@@ -2,10 +2,12 @@ import { Box, createListCollection, HStack } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
+import useApiQuery from 'lib/api/useApiQuery';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import { FilterInput } from 'toolkit/components/filters/FilterInput';
 import ActionBar from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
+import ExplorerEmptyState from 'ui/shared/emptyState/ExplorerEmptyState';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import Sort from 'ui/shared/sort/Sort';
@@ -22,9 +24,54 @@ const sortCollection = createListCollection({
 
 const VerifiedContracts = () => {
   const isMobile = useIsMobile();
+  const isStatsFeatureEnabled = config.features.stats.isEnabled;
 
   const { query, type, searchTerm, debouncedSearchTerm, sort, onSearchTermChange, onTypeChange, onSortChange } = useVerifiedContractsQuery();
   const { isError, isPlaceholderData, data, pagination } = query;
+
+  const countersStatsQuery = useApiQuery('stats:pages_contracts', {
+    queryOptions: {
+      enabled: isStatsFeatureEnabled,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    },
+  });
+  const countersApiQuery = useApiQuery('general:verified_contracts_counters', {
+    queryOptions: {
+      enabled: !isStatsFeatureEnabled,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    },
+  });
+
+  const verifiedCount = isStatsFeatureEnabled ?
+    Number(countersStatsQuery.data?.total_verified_contracts?.value || 0) :
+    Number(countersApiQuery.data?.verified_smart_contracts || 0);
+  const shouldShowIndexingState = !isError &&
+    !isPlaceholderData &&
+    !debouncedSearchTerm &&
+    !type &&
+    (data?.items?.length || 0) === 0 &&
+    verifiedCount > 0;
+
+  const emptyState = shouldShowIndexingState ? (
+    <ExplorerEmptyState
+      testId="verified-contracts-indexing-state"
+      iconName="contracts/verified"
+      title="Verified contracts are still syncing"
+      description="Counters are already available, but the list is still being indexed. Please refresh shortly."
+      primaryAction={{ label: 'Retry', href: '/verified-contracts' }}
+    />
+  ) : (
+    <ExplorerEmptyState
+      testId="verified-contracts-empty-state"
+      iconName="contracts/regular"
+      title="No verified contracts yet"
+      description="Verified contracts will appear here once contract indexing is complete."
+      primaryAction={{ label: 'Verify Contract', href: '/contract-verification' }}
+      secondaryAction={{ label: 'Browse Latest Blocks', href: '/blocks', variant: 'outline' }}
+    />
+  );
 
   const typeFilter = (
     <VerifiedContractsFilter
@@ -94,7 +141,8 @@ const VerifiedContracts = () => {
       <DataListDisplay
         isError={ isError }
         itemsNum={ data?.items.length }
-        emptyText="There are no verified contracts."
+        emptyText={ shouldShowIndexingState ? 'Syncing verified contracts list...' : 'There are no verified contracts.' }
+        emptyState={ emptyState }
         hasActiveFilters={ Boolean(debouncedSearchTerm || type) }
         emptyStateProps={{
           term: 'contract',

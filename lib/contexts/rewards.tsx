@@ -73,8 +73,8 @@ const RewardsContext = createContext<TRewardsContext>(initialState);
 
 // Message to sign for the rewards program
 function getMessageToSign(address: string, nonce: string, isLogin?: boolean, refCode?: string) {
-  const signInText = 'Sign-In for the Blockscout Merits program.';
-  const signUpText = 'Sign-Up for the Blockscout Merits program. I accept Terms of Service: https://merits.blockscout.com/terms. I love capybaras.';
+  const signInText = 'Sign-In for the Seth Merits program.';
+  const signUpText = 'Sign-Up for the Seth Merits program. I accept Terms of Service: https://seth.app/terms. I love capybaras.';
   const referralText = refCode ? ` Referral code: ${ refCode }` : '';
   const body = isLogin ? signInText : signUpText + referralText;
 

@@ -5,6 +5,7 @@ import type { TokensSortingValue } from 'types/api/tokens';
 
 import DataFetchAlert from 'ui/shared/DataFetchAlert';
 import DataListDisplay from 'ui/shared/DataListDisplay';
+import ExplorerEmptyState from 'ui/shared/emptyState/ExplorerEmptyState';
 import type { QueryWithPagesResult } from 'ui/shared/pagination/useQueryWithPages';
 
 import TokensListItem from './TokensListItem';
@@ -65,6 +66,15 @@ const Tokens = ({ query, onSortChange, sort, actionBar, description, hasActiveFi
       isError={ isError }
       itemsNum={ data?.items.length }
       emptyText="There are no tokens."
+      emptyState={
+          <ExplorerEmptyState
+            testId="tokens-empty-state"
+            iconName="tokens"
+            title="No tokens indexed yet"
+          description="Token records will appear here after indexing catches up."
+          primaryAction={{ label: 'Browse Latest Blocks', href: '/blocks' }}
+        />
+      }
       hasActiveFilters={ hasActiveFilters }
       emptyStateProps={{
         term: 'token',

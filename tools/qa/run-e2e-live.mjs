@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import path from 'node:path';
 
 import { ensureRuntimeServer } from '../shared/ensure-runtime-server.mjs';
+import { warmupRuntimeRoutes } from './warmup-runtime-routes.mjs';
 
 const PLAYWRIGHT_CONFIG = 'playwright-e2e.config.ts';
 const DEFAULT_FALLBACK_PORTS = [ 8090, 8080, 8095, 8096 ];
@@ -81,6 +82,26 @@ async function run() {
     console.log(`[e2e-live] started runtime pid=${ runtimeServer.pid } base=${ effectiveBaseUrl }`);
   } else if (effectiveBaseUrl !== requestedBaseUrl) {
     console.log(`[e2e-live] reusing runtime base=${ effectiveBaseUrl }`);
+  }
+
+  const runtimeUrl = new URL(effectiveBaseUrl);
+  const isLocalRuntime = [ 'localhost', '127.0.0.1', '::1' ].includes(runtimeUrl.hostname);
+  const shouldWarmup = isLocalRuntime && process.env.E2E_SKIP_WARMUP !== '1';
+
+  if (shouldWarmup) {
+    const warmupTimeoutMs = Number(process.env.E2E_WARMUP_TIMEOUT_MS || 240_000);
+    const { failed } = await warmupRuntimeRoutes({
+      baseUrl: effectiveBaseUrl,
+      timeoutMs: warmupTimeoutMs,
+      logPrefix: '[e2e-live:warmup]',
+    });
+
+    if (failed.length > 0) {
+      console.error(`[e2e-live] warmup failed for ${ failed.length } route(s)`);
+      await runtimeServer.stop?.();
+      process.exitCode = 1;
+      return;
+    }
   }
 
   try {

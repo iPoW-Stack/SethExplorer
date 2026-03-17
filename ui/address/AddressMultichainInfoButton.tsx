@@ -30,7 +30,7 @@ const AddressMultichainInfoButton = ({ addressData, ...rest }: Props) => {
   const url = (() => {
     try {
       const url = new URL(promotedProvider.urlTemplate.replace('{address}', addressData.hash));
-      url.searchParams.append('utm_source', 'blockscout');
+      url.searchParams.append('utm_source', 'seth');
       url.searchParams.append('utm_medium', 'address');
       return url.toString();
     } catch (error) {}

@@ -94,7 +94,7 @@ export default function useStrictBlocksData({ query }: Params): StrictPageAdapte
 
   const items = query.isPlaceholderData ? [] : (query.data?.items || []);
 
-  const rows = items.map((item, index) => {
+  const rows = items.map((item) => {
     const gasProgress = calcPercent(item.gas_used, item.gas_limit);
     const blockNumber = String(item.height);
     const poolLabel = item.pool_index !== null && item.pool_index !== undefined ? formatSethPoolIndexCompact(item.pool_index) : undefined;
@@ -104,7 +104,7 @@ export default function useStrictBlocksData({ query }: Params): StrictPageAdapte
     };
 
     return {
-      id: `${ item.height ?? 'na' }-${ item.hash ?? 'na' }-${ index }`,
+      id: item.hash || `${ item.height ?? 'na' }-${ item.pool_index ?? 'na' }`,
       block: blockNumber,
       blockHref: route({ pathname: '/block/[height_or_hash]', query: blockQuery }),
       poolLabel,

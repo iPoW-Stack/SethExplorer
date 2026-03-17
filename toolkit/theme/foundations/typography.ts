@@ -5,10 +5,12 @@ import type { ExcludeUndefined } from 'types/utils';
 // Seth strict visual baseline uses one modern sans type family.
 export const BODY_TYPEFACE = 'Inter, InterFallback';
 export const HEADING_TYPEFACE = 'Inter, InterFallback';
+export const MONO_TYPEFACE = 'JetBrains Mono, Fira Code, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
 export const fonts: ExcludeUndefined<ThemingConfig['tokens']>['fonts'] = {
   heading: { value: `${ HEADING_TYPEFACE }, sans-serif` },
   body: { value: `${ BODY_TYPEFACE }, sans-serif` },
+  mono: { value: MONO_TYPEFACE },
 };
 
 export const textStyles: ThemingConfig['textStyles'] = {
@@ -86,6 +88,14 @@ export const textStyles: ThemingConfig['textStyles'] = {
         lineHeight: '16px',
         fontWeight: '400',
         fontFamily: 'body',
+      },
+    },
+    code: {
+      value: {
+        fontSize: '13px',
+        lineHeight: '20px',
+        fontWeight: '400',
+        fontFamily: 'mono',
       },
     },
   },

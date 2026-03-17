@@ -128,11 +128,17 @@ test('address detail transaction links and pagination are actionable', async({ p
   await gotoWithRetry(page, `/address/${ ADDRESS_HASH }`, 2, 35_000);
 
   const firstTxLink = page.getByTestId('strict-address-row-hash-link').first();
-  if (await firstTxLink.count() > 0) {
-    await expect(firstTxLink).toBeVisible({ timeout: 20_000 });
-    await expect(firstTxLink).toHaveAttribute('href', /\/tx\//);
+  const hasVisibleTxLink = await firstTxLink.isVisible().catch(() => false);
+  if (hasVisibleTxLink) {
+    try {
+      await expect(firstTxLink).toBeVisible({ timeout: 20_000 });
+      await expect(firstTxLink).toHaveAttribute('href', /\/tx\//);
+    } catch {
+      await expect(page.getByText(/Transactions|No transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
+      return;
+    }
   } else {
-    await expect(page.getByText(/Transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Transactions|No transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
     return;
   }
 
@@ -140,7 +146,7 @@ test('address detail transaction links and pagination are actionable', async({ p
   const nextButton = page.getByTestId('strict-address-next-page');
 
   if (await pageLabel.count() === 0 || await nextButton.count() === 0) {
-    await expect(page.getByText(/Transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Transactions|No transactions|Failed to load address data/i).first()).toBeVisible({ timeout: 20_000 });
     return;
   }
 

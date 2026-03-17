@@ -11,6 +11,19 @@ import * as features from './features';
 import * as views from './ui/views';
 import { getEnvValue, getExternalAssetFilePath, parseEnvJson } from './utils';
 
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return Math.floor(parsed);
+}
+
 const homePageStats: Array<HomeStatsWidgetId> = (() => {
   const parsedValue = parseEnvJson<Array<HomeStatsWidgetId>>(getEnvValue('NEXT_PUBLIC_HOMEPAGE_STATS'));
 
@@ -40,15 +53,28 @@ const defaultColorTheme = (() => {
 const strictConfig = (() => {
   const strictModeValue = getEnvValue('NEXT_PUBLIC_SETH_STRICT_MODE');
   const strictDataSourceValue = getEnvValue('NEXT_PUBLIC_SETH_STRICT_DATA_SOURCE');
+  const liveHeadEnabledValue = getEnvValue('NEXT_PUBLIC_LIVE_HEAD_ENABLED');
+  const liveHeadPollMsValue = getEnvValue('NEXT_PUBLIC_LIVE_HEAD_POLL_MS');
+  const liveHeadSwitchBlocksValue = getEnvValue('NEXT_PUBLIC_LIVE_HEAD_SWITCH_BLOCKS');
+  const liveHeadSwitchSecondsValue = getEnvValue('NEXT_PUBLIC_LIVE_HEAD_SWITCH_SECONDS');
+  const liveHeadApiPathValue = getEnvValue('NEXT_PUBLIC_LIVE_HEAD_API_PATH');
 
   const fallbackStrictMode = defaultColorTheme?.id === 'seth';
   const mode = strictModeValue === undefined ? fallbackStrictMode : strictModeValue !== 'false';
 
   const dataSource: SethStrictDataSource = strictDataSourceValue === 'live' ? 'live' : 'stub';
+  const liveHeadEnabled = liveHeadEnabledValue === undefined ? true : liveHeadEnabledValue !== 'false';
 
   const value: UIStrictConfig = {
     mode,
     dataSource,
+    liveHead: {
+      enabled: liveHeadEnabled,
+      pollMs: parsePositiveInteger(liveHeadPollMsValue, 10_000),
+      switchBlocks: parsePositiveInteger(liveHeadSwitchBlocksValue, 3),
+      switchSeconds: parsePositiveInteger(liveHeadSwitchSecondsValue, 90),
+      apiPath: liveHeadApiPathValue || '/api/v2/seth/live-head',
+    },
   };
 
   return value;

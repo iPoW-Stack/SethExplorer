@@ -138,7 +138,7 @@ const Clusters = () => {
   return (
     <>
       <Text mb={ 6 } textStyle={{ base: 'sm', lg: 'md' }}>
-        <Link href="https://clusters.xyz/?utm_source=blockscout" external noIcon>Clusters</Link>{ ' ' }
+        <Link href="https://clusters.xyz/?utm_source=seth" external noIcon>Clusters</Link>{ ' ' }
         is a cross-chain name service for managing addresses on multiple blockchains using a universal naming directory.
       </Text>
       <DataListDisplay

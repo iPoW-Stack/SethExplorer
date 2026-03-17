@@ -5,7 +5,7 @@ import type { Route } from 'nextjs-routes';
 
 import generate from './generate';
 
-const JSON_LD_SCRIPT_ID = 'blockscout-product-schema';
+const JSON_LD_SCRIPT_ID = 'seth-product-schema';
 
 export default function update<Pathname extends Route['pathname']>(route: RouteParams<Pathname>, apiData: ApiData<Pathname>) {
   const { title, description, jsonLd } = generate(route, apiData);

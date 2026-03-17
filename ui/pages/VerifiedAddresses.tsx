@@ -190,19 +190,19 @@ const VerifiedAddresses = () => {
       { userWithoutEmail && <VerifiedAddressesEmailAlert/> }
       <AccountPageDescription allowCut={ false }>
         <span>
-          Verify ownership of a smart contract address to easily update information in Blockscout.
+          Verify ownership of a smart contract address to easily update information in Seth Explorer.
           You will sign a single message to verify contract ownership.
           Once verified, you can update token information, address name tags, and address labels from the
-          Blockscout console without needing to sign additional messages.
+          Seth Explorer console without needing to sign additional messages.
         </span>
         <chakra.p fontWeight={ 600 } mt={ 5 }>
           Before starting, make sure that:
         </chakra.p>
         <List.Root pl={ 5 } as="ol">
-          <List.Item>The source code for the smart contract is deployed on “{ config.chain.name }”.</List.Item>
+          <List.Item>The source code for the smart contract is deployed on { config.chain.name }.</List.Item>
           <List.Item>
             <span>The source code is verified (if not yet verified, you can use </span>
-            <Link href="https://docs.blockscout.com/devs/verification" external noIcon>this tool</Link>
+            <Link href="https://github.com/iPoW-Stack/SethExplorer" external noIcon>this tool</Link>
             <span>).</span>
           </List.Item>
         </List.Root>
