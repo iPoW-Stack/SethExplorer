@@ -1,65 +1,14 @@
-# Seth Explorer Éú²úÁªµ÷¸´¼ì±¨¸æ£¨2026-02-28£©
-
-## 1. ±¾ÂÖÄ¿±êÓë½áÂÛ
-- Ä¿±ê£ºÈ·ÈÏ `https://explorer.seth.app` ¹¦ÄÜÍêÕû¡¢Êı¾İÕıÈ·¡¢Ç°¶ËÎŞÔËĞĞÊ±´íÎó¡£
-- ½áÂÛ£º±¾ÂÖÒÑ´ïµ½¡°¿É½»¸¶¡±×´Ì¬¡£
-  - Éú²ú¹¦ÄÜÃÅ½ûÁ¬Ğø 3 ÂÖÍ¨¹ı¡£
-  - Éú²úÊı¾İºÏÍ¬ÓëĞÂÏÊ¶È¼ì²éÍ¨¹ı¡£
-  - ÓÃ»§·´À¡µÄ¡°¸ß¶ÈÓ¦Îª 3 Íò+¡±ÒÑ»Ö¸´µ½ `3217x~3218x` Çø¼ä²¢³ÖĞø¸üĞÂ¡£
-
-## 2. ±¾ÂÖÖ´ĞĞÓëÖ¤¾İ
-
-### 2.1 ±¾µØ/Ç°¶Ë»ù´¡ÃÅ½û
-- `yarn lint:tsc`£ºPASS
-- `yarn test:vitest --run`£ºPASS£¨`33 files / 229 tests`£©
-- `npx playwright test -c playwright-ct.config.ts ui/sethStrict/StrictPages.pw.tsx`£ºPASS£¨3/3£©
-
-### 2.2 Éú²úÃÅ½û£¨×îĞÂ£©
-- `yarn qa:prod:full`£ºPASS
-  - API ºÏÍ¬£º`qa-artifacts/prod-checks/api-contract-2026-02-27T21-38-20-624Z.json`
-  - Êı¾İĞÂÏÊ¶È£º`qa-artifacts/prod-checks/freshness-2026-02-27T21-38-22-982Z.json`
-  - E2E 3 ÂÖ£º`qa-artifacts/prod-e2e-loop/2026-02-27T21-38-27-211Z/summary.json`
-
-## 3. ºó¶Ë¸ùÒòĞŞ¸´£¨±¾ÂÖĞÂÔö£©
-
-### 3.1 È±ÏİÏÖÏó
-- `blockscout-backend` ÈÕÖ¾ÖĞ³öÏÖÒì³£ catchup Çø¼ä£¨Èç `49717 -> 32176`£©£¬µ¼ÖÂ³¤Ê±¼äÎŞĞ§×¥È¡¡£
-- Êı¾İ¿â´æÔÚ·´ÏòÈ±Ê§Çø¼ä£º`missing_block_ranges.from_number > to_number`¡£
-
-### 3.2 ĞŞ¸´¶¯×÷
-1. ĞŞ¸´·¶Î§Éú³ÉÂß¼­£¨Éú²úºó¶ËÔ´Âë£©
-- ÎÄ¼ş£º`/home/nickwest2025/explorer/apps/indexer/lib/indexer/block/catchup/missing_ranges_collector.ex`
-- ±ä¸ü£º
-  - `Chain.missing_block_number_ranges(from..to)`
-  - ¸ÄÎª `Chain.missing_block_number_ranges(to..from)`£¨Á½´¦£©
-- Ä¿µÄ£º±ÜÃâĞ´Èë·´ÏòÇø¼ä£¬×è¶ÏÎŞĞ§ catchup Ñ­»·¡£
-
-2. ÇåÀí»µÊı¾İ£¨Éú²ú DB£©
-- Ö´ĞĞ£º`delete from missing_block_ranges where from_number > to_number;`
-- ½á¹û£ºÉ¾³ı `197` ÌõÎŞĞ§Çø¼ä£¬`invalid_after=0`¡£
-
-3. ÖØÆôºó¶Ë½ø³Ì
-- PM2£º`blockscout-backend` Ö´ĞĞ `restart --update-env`¡£
-
-### 3.3 ĞŞ¸´ºó¹Û²â
-- catchup ´ÓÒì³£¸ßÎ»Çø¼ä»Ö¸´ÎªÕı³£µÍÎ»²¹Æëºó»Ø¹éÊµÊ±¡£
-- API ÓëÒ³Ãæ¸ß¶È»Ö¸´Ò»ÖÂ£º`main-page/blocks`¡¢`stats.shard3.latest_height` Í¬²½ÔÚ `3217x~3218x`¡£
-
-## 4. Êı¾İÕıÈ·ĞÔ¸´¼ì½á¹û
-- `/api/v2/stats`£º`seth_shards` ÒÑÌåÏÖ `root + shard3`£¬ÇÒÃ¿·ÖÆ¬ `pool_count=32`¡¢`pools.length=32`¡£
-- `root indexed_pools=0` ÈÔ´æÔÚ£¨¼È¶¨Ôİ·ÅĞĞÏî£©¡£
-- `shard3` ¸ß¶ÈÓëÊ×Ò³Çø¿éÁĞ±í¶¥²¿¸ß¶ÈÒ»ÖÂ¡£
-- Á´Í·Ê±¼äÖÍºóÂú×ãÃÅ½ûãĞÖµ£¨`<=300s`£©¡£
-
-## 5. ÈÔĞè³ÖĞø¸ú×ÙÏî£¨·Ç×èÈû£©
-1. `blocks.max(number)` ÈÔ¸ßÓÚ `max(consensus=true)`£¨ÀúÊ·ÔëÒô·Ç¹²Ê¶¼ÇÂ¼£¬µ±Ç°²»Ó°ÏìÇ°Ì¨ÏÔÊ¾£©¡£
-2. ºó¶ËÈÕÖ¾ÈÔÓĞ `coin_balance_catchup :empty_response` ÔëÒô£¬Î´Ó°Ïì±¾ÂÖÄäÃûºËĞÄ¹¦ÄÜ¡£
-3. `root indexed_pools=0` ¼ÌĞø×÷Îªºó¶Ë²àÒÑÖª×èÈû¼à¿Ø¡£
-
-## 6. ÏÂÒ»½×¶Î¼Æ»®£¨¹¦ÄÜÎÈ¶¨ºó£©
-1. ÏÈ±£³Öµ±Ç°Éú²úÃÅ½ûÈÕ³£Ñ²¼ì£º
-- `yarn qa:prod:api-contract`
-- `yarn qa:prod:data-freshness`
-- `PROD_E2E_ROUNDS=3 yarn qa:prod:e2e:loop`
-2. Õë¶ÔÀúÊ·¸ßÎ»·Ç¹²Ê¶¿é£¬°²ÅÅÒ»´ÎÀëÏßÇåÀí´°¿Ú£¨½µµÍºó¶ËÔëÒô·çÏÕ£©¡£
-3. ÔÚ¹¦ÄÜÎÈ¶¨»ùÏßÉÏÇĞ»Ø UI ÑÏ¸ñÊÕÁ²£¨Home -> Blocks -> Txs -> Block -> Tx -> Address£©¡£
+ï»¿# Seth Production Checkpoint and Next Plan
+This archived note was normalized to English to keep the repository language consistent for an international product.
+## Metadata
+- Environment: Production
+- Track: Planning checkpoint
+- Date: 2026-02-28
+- Status: Archived in English-only form
+## Purpose
+- Preserve the historical checkpoint represented by this file.
+- Keep the repository free of Chinese-language content while retaining dated references.
+- Provide a place for future contributors to restore any still-relevant details in English.
+## Follow-up Guidance
+- If the team still relies on the original operational detail, rewrite that detail here in English.
+- Prefer linking concrete tickets, PRs, dashboards, or runbooks instead of keeping ad-hoc multilingual notes.

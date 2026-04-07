@@ -10,8 +10,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-001',
     route: '/verified-contracts',
-    change: 'Verified Contracts 空态与 counters 口径一致',
-    done_definition: 'counters>0 且列表为空时展示 indexing 状态，而不是 no data',
+    change: 'Align the Verified Contracts empty state with the counter totals',
+    done_definition: 'Show an indexing state instead of a no-data state when counters are positive but the list is empty',
     owner: 'frontend',
     evidence_path: 'ui/pages/VerifiedContracts.tsx',
     check: () => fileContains('ui/pages/VerifiedContracts.tsx', [
@@ -23,8 +23,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-002',
     route: '/tokens,/accounts,/internal-txs,/token-transfers,/search-results',
-    change: '统一品牌化空状态组件',
-    done_definition: '目标页面使用 ExplorerEmptyState，并提供描述与 CTA',
+    change: 'Standardize branded empty-state components across key routes',
+    done_definition: 'Target pages use ExplorerEmptyState and provide descriptive copy plus a CTA',
     owner: 'frontend',
     evidence_path: 'ui/shared/emptyState/ExplorerEmptyState.tsx',
     check: () => all([
@@ -39,8 +39,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-003',
     route: '/block/[height_or_hash]',
-    change: 'Block 详情 Prev/Next 导航',
-    done_definition: '区块详情页存在可点击 Prev/Next（含 disable 边界）',
+    change: 'Add Prev/Next navigation on block detail pages',
+    done_definition: 'Block detail pages render clickable Prev/Next controls with proper disabled boundaries',
     owner: 'frontend',
     evidence_path: 'ui/sethStrict/StrictBlockDetailPage.tsx',
     check: () => fileContains('ui/sethStrict/StrictBlockDetailPage.tsx', [
@@ -53,8 +53,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-004',
     route: '/txs',
-    change: '交易列表状态图标 + Method 颜色编码 + copy 反馈入口',
-    done_definition: 'strict 交易列表渲染状态图标/Method tone/copy 交互',
+    change: 'Add tx status icons, method color coding, and copy feedback',
+    done_definition: 'The strict transaction list renders status icons, method tone styling, and copy interactions',
     owner: 'frontend',
     evidence_path: 'ui/sethStrict/StrictTransactionsPage.tsx',
     check: () => all([
@@ -64,9 +64,9 @@ const phaseOneTasks = [
   },
   {
     id: 'UI-P1-005',
-    route: '全站表格',
-    change: '统一表格 hover/斑马纹/点击反馈',
-    done_definition: 'seth 样式下 key 列表具备 hover 与斑马纹',
+    route: 'sitewide tables',
+    change: 'Standardize table hover, striping, and click feedback',
+    done_definition: 'Key lists in the Seth theme have hover feedback and zebra striping',
     owner: 'frontend',
     evidence_path: 'toolkit/theme/globalCss.ts',
     check: () => all([
@@ -80,9 +80,9 @@ const phaseOneTasks = [
   },
   {
     id: 'UI-P1-006',
-    route: 'Header 索引状态条',
-    change: '索引状态条改进为进度条并支持非首页折叠',
-    done_definition: '显示百分比 progress；非首页可 collapse/expand',
+    route: 'header indexing status bar',
+    change: 'Convert the indexing notice into a progress bar with non-home collapse support',
+    done_definition: 'The UI shows percentage progress and allows collapse/expand away from the home page',
     owner: 'frontend',
     evidence_path: 'ui/snippets/header/alerts/IndexingBlocksAlert.tsx',
     check: () => fileContains('ui/snippets/header/alerts/IndexingBlocksAlert.tsx', [
@@ -95,8 +95,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-007',
     route: '/stats',
-    change: '分片状态业务文案化 + 技术码折叠',
-    done_definition: '主状态显示 Healthy/Degraded/Unavailable，技术码在 Details 中',
+    change: 'Use business-friendly shard status copy with expandable technical details',
+    done_definition: 'Primary shard states are Healthy/Degraded/Unavailable, with technical codes moved into a Details section',
     owner: 'frontend',
     evidence_path: 'ui/stats/SethShardsStatus.tsx',
     check: () => all([
@@ -107,8 +107,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-008',
     route: '/api-docs',
-    change: 'API Docs 品牌清理',
-    done_definition: '前端渲染层过滤 Blockscout 字样',
+    change: 'Remove legacy Blockscout branding in API Docs',
+    done_definition: 'The frontend render layer filters visible Blockscout branding',
     owner: 'frontend',
     evidence_path: 'ui/apiDocs/SwaggerUI.tsx',
     check: () => fileContains('ui/apiDocs/SwaggerUI.tsx', [
@@ -120,8 +120,8 @@ const phaseOneTasks = [
   {
     id: 'UI-P1-009',
     route: '/stats',
-    change: '统计卡片可读性提升',
-    done_definition: 'icon 对比度提升、value 层级增强',
+    change: 'Improve stats card readability',
+    done_definition: 'Icons have better contrast and values use a stronger visual hierarchy',
     owner: 'frontend',
     evidence_path: 'ui/shared/stats/StatsWidget.tsx',
     check: () => fileContains('ui/shared/stats/StatsWidget.tsx', [
@@ -140,6 +140,7 @@ function fileContains(relativePath, snippets) {
   if (!fs.existsSync(absPath)) {
     return false;
   }
+
   const source = fs.readFileSync(absPath, 'utf8');
   return snippets.every((snippet) => source.includes(snippet));
 }
@@ -150,8 +151,8 @@ async function checkProductionSignals(baseUrl) {
     {
       id: 'UI-PROD-001',
       route: '/api-docs',
-      change: '可见文案不出现 Blockscout',
-      done_definition: 'api-docs 可见文本无 Blockscout',
+      change: 'Ensure visible API Docs copy does not contain Blockscout branding',
+      done_definition: 'Visible text in API Docs should not contain the word Blockscout',
       owner: 'frontend',
       evidence_path: `${ normalizedBase }/api-docs`,
       check: async() => {
@@ -159,19 +160,21 @@ async function checkProductionSignals(baseUrl) {
         if (!res.ok) {
           return false;
         }
+
         const html = await res.text();
         const visible = html
-          .replace(/<script[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[\s\S]*?<\/style>/gi, '')
+          .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+          .replace(/<style[\s\S]*?<\/style>/gi, ' ')
           .replace(/<[^>]+>/g, ' ');
+
         return !/blockscout/i.test(visible);
       },
     },
     {
       id: 'UI-PROD-002',
       route: '/api/v2/stats',
-      change: 'Stats 数据包含分片状态字段',
-      done_definition: 'stats API 返回 seth_shards 数组用于 UI 状态展示',
+      change: 'Ensure stats payloads include shard status data',
+      done_definition: 'The stats API returns a seth_shards array for UI shard status rendering',
       owner: 'frontend',
       evidence_path: `${ normalizedBase }/api/v2/stats`,
       check: async() => {
@@ -179,6 +182,7 @@ async function checkProductionSignals(baseUrl) {
         if (!res.ok) {
           return false;
         }
+
         const payload = await res.json().catch(() => null);
         return Array.isArray(payload?.seth_shards);
       },
@@ -186,9 +190,11 @@ async function checkProductionSignals(baseUrl) {
   ];
 
   const results = [];
+
   for (const item of checks) {
     let status = 'pending';
     let reason;
+
     try {
       status = (await item.check()) ? 'done' : 'pending';
       if (status !== 'done') {
@@ -198,6 +204,7 @@ async function checkProductionSignals(baseUrl) {
       status = 'pending';
       reason = error instanceof Error ? error.message : String(error);
     }
+
     results.push({
       ...item,
       status,
@@ -212,6 +219,7 @@ async function main() {
   const baseUrl = process.env.PROD_BASE_URL || 'https://explorer.seth.app';
   const localResults = phaseOneTasks.map((task) => {
     const status = task.check() ? 'done' : 'pending';
+
     return {
       id: task.id,
       route: task.route,
@@ -232,6 +240,7 @@ async function main() {
     } else {
       acc.pending += 1;
     }
+
     return acc;
   }, { total: entries.length, done: 0, pending: 0 });
 

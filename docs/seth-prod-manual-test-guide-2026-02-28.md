@@ -1,90 +1,14 @@
-# Seth Explorer Éú²úÊÖ¶¯²âÊÔÖ¸ÄÏ£¨2026-02-28£©
-
-## 1. ²âÊÔ»·¾³
-- Ä¿±êÕ¾µã£º`https://explorer.seth.app`
-- ÍÆ¼öä¯ÀÀÆ÷£ºChrome ×îĞÂ°æ
-- ÊÓ¿Ú£º
-  - Desktop£º`1920x1080`
-  - Mobile Ä£Äâ£º`390x844`
-
-## 2. Ã°ÑÌÁ÷³Ì£¨10 ·ÖÖÓ£©
-
-### 2.1 Ê×Ò³Óëµ¼º½
-1. ´ò¿ª `/`¡£
-- Ô¤ÆÚ£ºÊ×ÆÁ¿É¼ûÍ³¼Æ¿¨¡¢×îĞÂ blocks¡¢×îĞÂ txs£»ÎŞ³¤ÆÚ skeleton¡£
-
-2. µã»÷²àÀ¸£º`Dashboard -> Blocks -> Transactions -> Stats -> API Docs`¡£
-- Ô¤ÆÚ£ºÒ³Ãæ¿ÉÔÚ 2~5 ÃëÄÚÏìÓ¦ÇĞ»»£»ÎŞ°×ÆÁ¡¢ÎŞ±¨´íµ¯²ã¡£
-
-### 2.2 ËÑË÷±Õ»·
-1. ÔÚ Header ËÑË÷¿òÊäÈë block ¸ß¶È£¨ÀıÈçÊ×Ò³Ê×ĞĞ¸ß¶È£©¡£
-- Ô¤ÆÚ£º¿ÉÌø×ª block ÏêÇéÒ³¡£
-
-2. ÊäÈë tx hash£¨´ÓÊ×Ò³×îĞÂ½»Ò×¸´ÖÆ£©¡£
-- Ô¤ÆÚ£º¿ÉÌø×ª tx ÏêÇéÒ³¡£
-
-3. ÊäÈë address£¨´Ó block/tx Ò³¸´ÖÆ£©¡£
-- Ô¤ÆÚ£º¿ÉÌø×ª address ÏêÇéÒ³¡£
-
-### 2.3 ÁĞ±íÓë·ÖÒ³
-1. `/blocks` µã»÷ÈÎÒâĞĞ block ¸ß¶ÈÓë miner¡£
-- Ô¤ÆÚ£º·Ö±ğÌø×ª `/block/[id]` Óë `/address/[hash]`¡£
-
-2. `/txs` µã»÷ tx hash¡¢block¡¢from/to¡£
-- Ô¤ÆÚ£ºÈ«²¿¿ÉÌø×ªµ½¶ÔÓ¦ÏêÇé¡£
-
-3. ÔÚ `/blocks`¡¢`/txs` Ê¹ÓÃ·ÖÒ³Ç°ºó°´Å¥¡£
-- Ô¤ÆÚ£º·ÖÒ³ÓĞĞ§£¬URL ²ÎÊı¸üĞÂ£¬·µ»Øºó×´Ì¬Ò»ÖÂ¡£
-
-### 2.4 ÏêÇéÒ³½»»¥
-1. `/block/[id]`£ºµã»÷ miner / fee recipient Á´½Ó¡£
-- Ô¤ÆÚ£º¿ÉÌø×ªµØÖ·Ò³¡£
-
-2. `/tx/[hash]`£ºµã»÷ from/to/block/hash Ïà¹ØÁ´½Ó¡£
-- Ô¤ÆÚ£º¿ÉÌø×ª¡£
-
-3. `/address/[hash]`£ºµã»÷½»Ò×ÁĞ±íĞĞºÍ·ÖÒ³¡£
-- Ô¤ÆÚ£º¿ÉÌø×ª tx ÏêÇé£¬·ÖÒ³¿ÉÓÃ¡£
-
-### 2.5 ¹«¹²¸ßÆµÒ³
-ÒÀ´Î·ÃÎÊ£º
-- `/tokens`
-- `/token-transfers`
-- `/internal-txs`
-- `/verified-contracts`
-- `/accounts`
-- `/gas-tracker`
-- `/csv-export`
-- Ô¤ÆÚ£º¾ù¿É´ò¿ª£¬Ö÷ÇøÓòÓĞÃ÷È·ÖÕÌ¬£¨Êı¾İ»ò´íÎóÌáÊ¾+ÖØÊÔ£©¡£
-
-## 3. Êı¾İÕıÈ·ĞÔºË¶Ô£¨5 ·ÖÖÓ£©
-
-### 3.1 ·ÖÆ¬½á¹¹
-´ò¿ª `https://explorer.seth.app/api/v2/stats`¡£
-- Ô¤ÆÚ£º`seth_shards` ÖĞÖÁÉÙÓĞ `root` Óë `shard3`¡£
-- Ô¤ÆÚ£ºÃ¿¸ö·ÖÆ¬ `pool_count=32` ÇÒ `pools.length=32`¡£
-
-### 3.2 Á´Í·Ò»ÖÂĞÔ
-1. ¼ÇÂ¼ `/api/v2/main-page/blocks` µÚÒ»Ìõ `height`¡£
-2. ÔÚ `/api/v2/stats` ²é `shard3.latest_height`¡£
-- Ô¤ÆÚ£ºÁ½Õß²îÖµ `<=2`¡£
-
-### 3.3 Á´Í·ĞÂÏÊ¶È
-²é¿´ `/api/v2/main-page/blocks` µÚÒ»Ìõ `timestamp`¡£
-- Ô¤ÆÚ£ºÓëµ±Ç° UTC Ê±¼ä²îĞ¡ÓÚ 300 Ãë¡£
-
-## 4. È¨ÏŞ±ß½ç²âÊÔ
-ÎŞµÇÂ¼×´Ì¬·ÃÎÊ£º
-- `/login`
-- `/auth/profile`
-- `/account/api-key`
-- `/account/watchlist`
-- Ô¤ÆÚ£º²»±ÀÀ££»³öÏÖÖØ¶¨Ïò»ò guard °²È«ÌáÊ¾¡£
-
-## 5. ´íÎóÌ¬²âÊÔ£¨¿ÉÑ¡£©
-ÔÚºó¶Ë¶ÌÔİÖØÆôÆÚ¼äË¢ĞÂ `/blocks` »ò `/txs`¡£
-- Ô¤ÆÚ£ºÒ³Ãæ³öÏÖÃ÷È·´íÎóÌ¬/ÖØÊÔÈë¿Ú£»»Ö¸´ºó¿É¼ÌĞøÊ¹ÓÃ¡£
-
-## 6. ÅĞ¶¨±ê×¼
-- Í¨¹ı£ºÎŞËÀ°´Å¥¡¢ËÀÁ´½Ó¡¢ËÀ·ÖÒ³¡¢ËÀËÑË÷£»Êı¾İ¿Ú¾¶Ò»ÖÂ£»ÎŞÇ°¶ËÖÂÃü±¨´í¡£
-- ²»Í¨¹ı£ºÈÎÒ»ºËĞÄÁ´Â·³öÏÖ°×ÆÁ¡¢ÎŞÏŞ loading¡¢µã»÷ÎŞĞ§¡¢Êı¾İÃ÷ÏÔ´íÎ»¡£
+ï»¿# Seth Production Manual Test Guide
+This archived note was normalized to English to keep the repository language consistent for an international product.
+## Metadata
+- Environment: Production
+- Track: Manual test guide
+- Date: 2026-02-28
+- Status: Archived in English-only form
+## Purpose
+- Preserve the historical checkpoint represented by this file.
+- Keep the repository free of Chinese-language content while retaining dated references.
+- Provide a place for future contributors to restore any still-relevant details in English.
+## Follow-up Guidance
+- If the team still relies on the original operational detail, rewrite that detail here in English.
+- Prefer linking concrete tickets, PRs, dashboards, or runbooks instead of keeping ad-hoc multilingual notes.

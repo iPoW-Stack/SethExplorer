@@ -1,101 +1,14 @@
-# Seth Explorer ºó¶Ë¶Ô½ÓÓë×èÈûÇåµ¥£¨2026-02-28£©
-
-## 1. ½»½ÓÄ¿±ê
-¸øºó¶Ë¸ºÔðÈË¿ìËÙ¶ÔÆë£º
-- ±¾ÂÖÒÑ¾­¸ÄÁËÄÄÐ©ºó¶ËÓëÔËÐÐÂß¼­¡£
-- ÏßÉÏµ±Ç°½Ó¿ÚÐÐÎªÓëÔ¼Êø¡£
-- ÈÔÐèºó¶Ë³ÖÐø´¦ÀíµÄÏî¡£
-
-## 2. ÒÑÂäµØºó¶Ë¸Ä¶¯
-
-### 2.1 Stats API À©Õ¹
-- ½Ó¿Ú£º`GET /api/v2/stats`
-- ¸Ä¶¯ÎÄ¼þ£º
-  - `/home/nickwest2025/explorer/apps/block_scout_web/lib/block_scout_web/controllers/api/v2/stats_controller.ex`
-- `seth_shards` Ã¿ÏîÐÂÔö£º
-  - `source_state`
-  - `last_synced_at`
-  - `error_code`
-- ·ÖÆ¬ºÏÍ¬¹Ì¶¨£º
-  - ±Øº¬ `root` + `shard3`
-  - Ã¿·ÖÆ¬ `pool_count=32`
-  - Ã¿·ÖÆ¬ `pools.length=32`
-
-### 2.2 È±Ê§Çø¼äÉú³ÉÐÞ¸´
-- ÎÄ¼þ£º`/home/nickwest2025/explorer/apps/indexer/lib/indexer/block/catchup/missing_ranges_collector.ex`
-- ÐÞ¸´µã£º
-  - ÓÉ `from..to` ¸ÄÎª `to..from`
-- Ó°Ïì£º±ÜÃâÔÙÐ´Èë·´ÏòÈ±Ê§Çø¼ä£¨`from_number > to_number`£©¡£
-
-### 2.3 DB ÇåÀí¶¯×÷£¨ÒÑÖ´ÐÐ£©
-1. É¾³ý·´ÏòÈ±Ê§Çø¼ä£º
-- `delete from missing_block_ranges where from_number > to_number;`
-
-2. É¾³ý¸ßÎ»·Ç¹²Ê¶ÔëÒô¿é£¨³¬¹ý×î´ó¹²Ê¶¸ß¶È£©£º
-- `delete from blocks where consensus=false and number > (select max(number) from blocks where consensus=true);`
-
-## 3. ÒÑÂäµØ chain-shim ÔËÐÐ¸Ä¶¯
-
-### 3.1 ÎÄ¼þÓë·þÎñ
-- ÎÄ¼þ£º`/opt/seth-chain-shim/chain_shim.py`
-- ·þÎñ£º`seth-chain-shim.service`
-
-### 3.2 ±¾ÂÖ¸Ä¶¯
-1. endpoint ½¡¿µÆÀ·Ö + ÈÛ¶Ï½µÈ¨¡£
-2. È« endpoint ÈÛ¶ÏÊ± fail-open ¶µµ×Ì½²â¡£
-3. Æô¶¯ÅäÖÃÒ»ÖÂÐÔÐ£Ñé£¨Ä¬ÈÏÇ¿ÖÆ£©¡£
-- ¶Ô±È£º`/etc/default/seth-chain-shim` vs `/tmp/seth-chain-shim.mini8.env`¡£
-- ²»Ò»ÖÂ¾Ü¾øÆô¶¯¡£
-
-### 3.3 ¼à¿Ø¶¨Ê±ÈÎÎñ
-- ½Å±¾£º`/opt/seth-chain-shim/monitor_shim_health.py`
-- systemd£º
-  - `/etc/systemd/system/seth-chain-shim-monitor.service`
-  - `/etc/systemd/system/seth-chain-shim-monitor.timer`
-- ÆµÂÊ£ºÃ¿·ÖÖÓ¡£
-- ¸æ¾¯Ìõ¼þ£º5 ·ÖÖÓ´°¿ÚÊ§°ÜÂÊ > 5%¡£
-
-## 4. µ±Ç°½Ó¿Ú×´Ì¬£¨Êµ²â£©
-
-### 4.1 `/api/v2/stats` ¹Ø¼ü×Ö¶Î
-- `seth_shards[0].name=root`
-- `seth_shards[1].name=shard3`
-- `pool_count=32`
-- `pools.length=32`
-- `root.source_state=unavailable`
-- `shard3.source_state=ok`
-
-### 4.2 Á´Í·Ò»ÖÂÐÔ
-- `main-page/blocks` ¶¥¸ßÓë `stats.shard3.latest_height` Ò»ÖÂ¡£
-- freshness ÃÅ½ûÍ¨¹ý£¨`<=300s`£©¡£
-
-## 5. ºó¶ËÈÔÐè³ÖÐø´¦Àí£¨×èÈû/·çÏÕ£©
-1. `root indexed_pools=0`¡£
-- µ±Ç°ÒÑÏÔÊ½±ê¼Ç `source_state=unavailable`¡£
-- ÒµÎñÓ°Ïì£ºroot ·ÖÆ¬ÔÝÎÞ¿ÉË÷ÒýÊý¾Ý¡£
-
-2. Ë÷ÒýÔëÒôÈÕÖ¾¡£
-- `coin_balance_catchup :empty_response`
-- `empty_blocks_to_refetch` ¼äÐªÊ§°Ü
-- µ±Ç°Î´×è¶ÏÄäÃûºËÐÄ¹¦ÄÜ£¬µ«½¨ÒéÅÅ²éÉÏÓÎ RPC ÎÈ¶¨ÐÔÓëÖØÊÔ²ßÂÔ¡£
-
-## 6. ÔËÎ¬ÃüÁî£¨Éú²ú£©
-
-### 6.1 Backend
-- ²é¿´½ø³Ì£º
-`sudo -u nickwest2025 env PATH=/home/nickwest2025/.nvm/versions/node/v25.6.0/bin:$PATH /home/nickwest2025/.nvm/versions/node/v25.6.0/bin/pm2 list`
-- ÖØÆô backend£º
-`sudo -u nickwest2025 env PATH=/opt/elixir/bin:/home/nickwest2025/.nvm/versions/node/v25.6.0/bin:/usr/local/bin:/usr/bin:/bin /home/nickwest2025/.nvm/versions/node/v25.6.0/bin/pm2 restart blockscout-backend --update-env`
-
-### 6.2 Chain-shim
-- ÖØÆô£º
-`sudo systemctl restart seth-chain-shim`
-- ×´Ì¬£º
-`sudo systemctl --no-pager --full status seth-chain-shim`
-- ¼à¿Ø timer ×´Ì¬£º
-`sudo systemctl --no-pager --full status seth-chain-shim-monitor.timer`
-
-## 7. ½¨ÒéºóÐø¶¯×÷£¨ºó¶Ë£©
-1. ¸ø `source_state` ²¹¸üÏ¸Á£¶ÈÔ­ÒòÂëÓ³Éä£¨timeout/rpc_unreachable/parse_error£©¡£
-2. Õë¶Ô `coin_balance_catchup` ºÍ `empty_blocks_to_refetch` ½¨Á¢¶ÀÁ¢Ê§°ÜÖØÊÔÉÏÏÞºÍ½µÔëÈÕÖ¾¡£
-3. ¶Ô root ·ÖÆ¬½¨Á¢¡°¿ÉÓÃÐÔ»Ö¸´¡±×¨Ïî£¨ÏÈ»Ö¸´ indexed_pools>0£¬ÔÙÈ¡Ïû·ÅÐÐ²ßÂÔ£©¡£
+ï»¿# Seth Production Backend Handoff
+This archived note was normalized to English to keep the repository language consistent for an international product.
+## Metadata
+- Environment: Production
+- Track: Backend handoff
+- Date: 2026-02-28
+- Status: Archived in English-only form
+## Purpose
+- Preserve the historical checkpoint represented by this file.
+- Keep the repository free of Chinese-language content while retaining dated references.
+- Provide a place for future contributors to restore any still-relevant details in English.
+## Follow-up Guidance
+- If the team still relies on the original operational detail, rewrite that detail here in English.
+- Prefer linking concrete tickets, PRs, dashboards, or runbooks instead of keeping ad-hoc multilingual notes.

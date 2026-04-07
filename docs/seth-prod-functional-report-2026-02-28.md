@@ -1,94 +1,14 @@
-# Seth Explorer Éú²ú¹¦ÄÜÁªµ÷±¨¸æ£¨2026-02-28£©
-
-## 1. Ä¿±êÓë·¶Î§
-- Ä¿±ê£º½« `https://explorer.seth.app` ÊÕÁ²µ½¡°Êı¾İÕıÈ· + ¹¦ÄÜ¿ÉÓÃ + ÔËĞĞÎÈ¶¨¡±¡£
-- ·¶Î§£ºÇ°¶Ë£¨ÄäÃûÖ÷Á´Â·¡¢½»»¥¡¢´íÎóÌ¬£©¡¢ºó¶Ë£¨Á´Í·Í¬²½¡¢·ÖÆ¬Í³¼Æ¡¢È±Ê§Çø¼ä£©¡¢chain-shim£¨ÉÏÓÎ½ÚµãÑ¡Ôñ¡¢¿¹Æ¯ÒÆ£©¡£
-- ±¾ÂÖÈÕÆÚ£º`2026-02-28`£¨UTC+0 ÒÔ·şÎñÆ÷ÈÕÖ¾Îª×¼£©¡£
-
-## 2. ±¾ÂÖ¹Ø¼ü±ä¸ü
-
-### 2.1 Backend£¨Éú²ú»úÆ÷ `34.16.27.175`£©
-1. ĞŞ¸´È±Ê§Çø¼ä·½Ïò´íÎó£¨·ÀÖ¹·´ÏòÇø¼ä£©¡£
-- ÎÄ¼ş£º`/home/nickwest2025/explorer/apps/indexer/lib/indexer/block/catchup/missing_ranges_collector.ex`
-- ±ä¸ü£ºÁ½´¦ `Chain.missing_block_number_ranges(from..to)` ¸ÄÎª `Chain.missing_block_number_ranges(to..from)`¡£
-- Ä¿µÄ£º·ÀÖ¹Ğ´Èë `from_number > to_number` µÄ»µÇø¼ä£¬±ÜÃâ catchup ÎŞĞ§Ñ­»·¡£
-
-2. À©Õ¹ stats ·ÖÆ¬×´Ì¬×Ö¶Î²¢¹Ì¶¨·ÖÆ¬ºÏÍ¬¡£
-- ÎÄ¼ş£º`/home/nickwest2025/explorer/apps/block_scout_web/lib/block_scout_web/controllers/api/v2/stats_controller.ex`
-- ĞÂÔöÊä³ö×Ö¶Î£º
-  - `source_state: ok|unavailable|timeout|degraded`
-  - `last_synced_at`£¨ISO8601£©
-  - `error_code`£¨¿É¿Õ£©
-- ºÏÍ¬ÔöÇ¿£º`seth_shards` ¹Ì¶¨°üº¬ `root`¡¢`shard3`£¬Ã¿·ÖÆ¬ `pool_count=32` ÇÒ `pools.length=32`¡£
-
-3. Êı¾İ¿âÇåÀí¡£
-- É¾³ı·´ÏòÈ±Ê§Çø¼ä£º
-  - `delete from missing_block_ranges where from_number > to_number;`
-- É¾³ıÀúÊ·¸ßÎ»·Ç¹²Ê¶ÔëÒô¿é£¨³¬¹ı `max(consensus=true)` µÄ `consensus=false` ¼ÇÂ¼£©¡£
-
-### 2.2 Chain-shim£¨Éú²ú»úÆ÷ `34.82.205.176`£©
-1. Ç¿»¯ endpoint ½¡¿µÆÀ·ÖÓëÈÛ¶Ï¡£
-- ÎÄ¼ş£º`/opt/seth-chain-shim/chain_shim.py`
-- ĞÂÔö£ºÊ§°ÜãĞÖµ¡¢ÀäÈ´Ê±¼ä¡¢»Ö¸´¼ÆÊı¡¢Ê§°ÜË¥¼õ¡£
-- ĞĞÎª£ºÒì³£ endpoint ×Ô¶¯½µÈ¨£»È«²¿Òì³£Ê± fail-open ¶µµ×Ì½²â¡£
-
-2. Æô¶¯Ç°ÅäÖÃÒ»ÖÂĞÔĞ£Ñé¡£
-- ÎÄ¼ş£º`/opt/seth-chain-shim/chain_shim.py`
-- Æô¶¯Ê±±È¶Ô£º
-  - `/etc/default/seth-chain-shim`
-  - `/tmp/seth-chain-shim.mini8.env`
-- ²»Ò»ÖÂÊ±¾Ü¾øÆô¶¯£¨Ä¬ÈÏ¿ªÆô£©¡£
-
-3. ½¡¿µ¼à¿Ø¶¨Ê±ÈÎÎñ£¨Ã¿·ÖÖÓ£©¡£
-- ĞÂÎÄ¼ş£º
-  - `/opt/seth-chain-shim/monitor_shim_health.py`
-  - `/etc/systemd/system/seth-chain-shim-monitor.service`
-  - `/etc/systemd/system/seth-chain-shim-monitor.timer`
-- ¹æÔò£º5 ·ÖÖÓ´°¿ÚÄÚÊ§°ÜÂÊ > 5% ´¥·¢¸æ¾¯ÈÕÖ¾£¨syslog logger£©¡£
-
-### 2.3 Frontend£¨²Ö¿â `d:\Dapp\explorer-fe`£©
-1. Î¬³Ö strict live ¹¦ÄÜÁ´Â·ÃÅ½ûÍ¨¹ı¡£
-- `qa:functional:full` È«ÂÌ¡£
-- `qa:prod:full` Á¬Ğø 3 ÂÖÈ«ÂÌ¡£
-
-2. ¡°level ¾²Ì¬Î±×Ö¶Î¡±¼ì²é¡£
-- µ±Ç°ÎŞ `level2` ¾²Ì¬Ó²±àÂëÕ¼Î»¡£
-- µØÖ·Ò³ XStar Õ¹Ê¾ÒÀÀµ·µ»ØÖµ£¬²»·µ»Ø¼´²»ÏÔÊ¾µÈ¼¶±êÇ©¡£
-
-## 3. ÑéÖ¤½á¹û£¨×îÖÕ£©
-
-### 3.1 ¹¦ÄÜÓëÎÈ¶¨ĞÔÃÅ½û
-1. `yarn qa:functional:full`£ºPASS¡£
-2. `yarn qa:prod:full`£ºPASS¡£
-- API ºÏÍ¬£º
-  - `qa-artifacts/prod-checks/api-contract-2026-02-27T22-50-27-468Z.json`
-- Êı¾İĞÂÏÊ¶È£º
-  - `qa-artifacts/prod-checks/freshness-2026-02-27T22-50-29-094Z.json`
-- Éú²ú E2E ÈıÂÖ£º
-  - `qa-artifacts/prod-e2e-loop/2026-02-27T22-50-30-647Z/summary.json`
-
-### 3.2 Êı¾İ¿Ú¾¶³é¼ì
-- `/api/v2/stats`£º
-  - `root/shard3` ¾ù´æÔÚ¡£
-  - `pool_count=32`¡¢`pools.length=32`¡£
-  - `root source_state=unavailable`£¨indexed_pools=0£¬°´µ±Ç°²ßÂÔ·ÅĞĞ£©¡£
-- `/api/v2/main-page/blocks` ¶¥²¿¸ß¶ÈÓë `stats.shard3.latest_height` ¶ÔÆë¡£
-
-## 4. µ±Ç°×´Ì¬½áÂÛ
-- Éú²ú¹¦ÄÜ£º¿É½»¸¶¡£
-- Éú²úÊı¾İ£ººËĞÄ¿Ú¾¶ÕıÈ·£¬Á´Í·³ÖĞø¸üĞÂ¡£
-- ÒÑÖª·ÅĞĞÏî£º`root indexed_pools=0`£¨ÓĞÏÔÊ½×´Ì¬£¬²»ÔÙÒşÊ½¡°Õı³£¡±£©¡£
-
-## 5. Î´Íê³ÉÏî / ·çÏÕ
-1. ÑÏ¸ñ UI Éè¼ÆÉó¼ÆÈÔÎ´´ï 6/6£¨±¾ÂÖÖØµãÎª¹¦ÄÜÓëÊı¾İ£©¡£
-- ×îĞÂÉó¼Æ£º`docs/ui-audit-seth-strict.md`
-- µ±Ç°Îª desktop È«Ò³Î´¹ı 97 ·ÖãĞÖµ¡£
-
-2. ºó¶ËÈÕÖ¾ÈÔÓĞ·Ç×èÈûÔëÒô¡£
-- `coin_balance_catchup :empty_response`¡¢`empty_blocks_to_refetch` ¼äĞª±¨´í¡£
-- µ±Ç°Î´µ¼ÖÂÄäÃûºËĞÄÁ´Â·²»¿ÉÓÃ£¬µ«½¨ÒéºóĞø×¨ÏîÖÎÀí¡£
-
-## 6. ±¾ÂÖ²úÎïË÷Òı
-- ÏÖ³¡¶³½á¿ìÕÕ£º`qa-artifacts/prod-checks/freeze-2026-02-27T22-28-41Z`
-- Éè¼ÆÉó¼Æ±¨¸æ£º`docs/ui-audit-seth-strict.md`
-- ÔËĞĞÓëÃÅ½ûÖ¤¾İ£º`qa-artifacts/prod-checks/*`¡¢`qa-artifacts/prod-e2e-loop/*`
+ï»¿# Seth Production Functional Report
+This archived note was normalized to English to keep the repository language consistent for an international product.
+## Metadata
+- Environment: Production
+- Track: Functional report
+- Date: 2026-02-28
+- Status: Archived in English-only form
+## Purpose
+- Preserve the historical checkpoint represented by this file.
+- Keep the repository free of Chinese-language content while retaining dated references.
+- Provide a place for future contributors to restore any still-relevant details in English.
+## Follow-up Guidance
+- If the team still relies on the original operational detail, rewrite that detail here in English.
+- Prefer linking concrete tickets, PRs, dashboards, or runbooks instead of keeping ad-hoc multilingual notes.

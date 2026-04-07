@@ -74,7 +74,8 @@
     "qa:prod:ui-full:3x": "node ./tools/qa/prod-ui-full-loop.mjs",
     "qa:prod:ui-full:3x:maintenance": "node ./tools/qa/prod-ui-full-loop.mjs --allow-chain-pause",
     "qa:prod:auto-resume": "node ./tools/qa/prod-auto-resume-gate.mjs",
-    "qa:prod:runtime-config": "node ./tools/qa/prod-runtime-config-check.mjs"
+    "qa:prod:runtime-config": "node ./tools/qa/prod-runtime-config-check.mjs",
+    "qa:repo:no-cjk": "node ./tools/qa/check-no-cjk.mjs"
   },
   "dependencies": {
     "@blockscout/bens-types": "1.4.1",

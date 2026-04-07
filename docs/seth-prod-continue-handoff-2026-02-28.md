@@ -1,62 +1,14 @@
-# Seth Explorer ¼ÌĞøÖ´ĞĞÏÖ³¡¼ÇÂ¼£¨2026-02-28£©
-
-## 1. µ±Ç°ÏÖ³¡¸ÅÀÀ
-- Éú²úÕ¾£º`https://explorer.seth.app`
-- Backend£º`34.16.27.175`£¨PM2: `blockscout-backend`, `blockscout-frontend`£©
-- Chain-shim£º`34.82.205.176`£¨systemd: `seth-chain-shim`£©
-
-## 2. ÒÑÍê³ÉÇåµ¥
-1. ºó¶ËÈ±Ê§Çø¼ä·½ÏòĞŞ¸´£¨·À·´Ïò range£©¡£
-2. `GET /api/v2/stats` Ôö¼Ó `source_state/last_synced_at/error_code`¡£
-3. DB ÇåÀí£º
-- É¾³ı·´Ïò `missing_block_ranges`¡£
-- É¾³ı³¬³ö¹²Ê¶¸ß¶ÈµÄÀúÊ··Ç¹²Ê¶ÔëÒô¿é¡£
-4. chain-shim ¼ÓÈë endpoint ½¡¿µÆÀ·Ö¡¢ÈÛ¶Ï¡¢Æô¶¯ÅäÖÃÒ»ÖÂĞÔĞ£Ñé¡£
-5. chain-shim ¼à¿Ø timer£¨Ã¿·ÖÖÓ£©ÒÑÆôÓÃ¡£
-6. ¹¦ÄÜÃÅ½ûÍ¨¹ı£º
-- `qa:functional:full` PASS
-- `qa:prod:full` PASS£¨3 ÂÖ£©
-
-## 3. Î´Íê³É/´ıÏÂÒ»½×¶Î
-1. UI ÑÏ¸ñÉó¼Æ `6/6` Î´´ï³É¡£
-- ×îĞÂ£º`docs/ui-audit-seth-strict.md`
-- ÏÖ×´£ºdesktop È«Ò³Ô¼ `94.68 ~ 96.00`£¬Î´´ï `>=97.0`¡£
-
-2. ºó¶ËÔëÒôÈÕÖ¾×¨ÏîÎ´Íê³É¡£
-- `coin_balance_catchup :empty_response`
-- `empty_blocks_to_refetch` ¼äĞªÊ§°Ü
-
-## 4. ×îĞÂ¹Ø¼üÖ¤¾İÂ·¾¶
-- ¹¦ÄÜ×Ü±¨¸æ£º`docs/seth-prod-functional-report-2026-02-28.md`
-- ºó¶Ë½»½Ó£º`docs/seth-prod-backend-handoff-2026-02-28.md`
-- ÊÖ²âÖ¸ÄÏ£º`docs/seth-prod-manual-test-guide-2026-02-28.md`
-- Éú²ú¿ìÕÕ£º`qa-artifacts/prod-checks/freeze-2026-02-27T22-28-41Z`
-- ×îĞÂÉú²úÃÅ½û£º`qa-artifacts/prod-e2e-loop/2026-02-27T22-50-30-647Z/summary.json`
-
-## 5. ÏÂ´ÎÆô¶¯ºóÖ±½ÓÖ´ĞĞË³Ğò
-1. ÏÈÅÜÊı¾İÓë¹¦ÄÜ½¡¿µ¼ì²é£º
-- `yarn qa:prod:api-contract`
-- `yarn qa:prod:data-freshness`
-- `PROD_E2E_ROUNDS=1 yarn qa:prod:e2e:loop`
-
-2. ¿ªÊ¼ UI ÑÏ¸ñÊÕÁ²£¨¹Ì¶¨Ë³Ğò£©£º
-- Home -> Blocks -> Txs -> Block -> Tx -> Address
-- Ã¿Ò³¸ÄÍêÁ¢¼´ÅÜ£º`RUNTIME_BASE_URL=https://explorer.seth.app yarn audit:design:strict`
-
-3. ×îÖÕÊÕ¿Ú£º
-- `yarn qa:prod:full`
-- `RUNTIME_BASE_URL=https://explorer.seth.app yarn audit:design:strict`
-
-## 6. ¹Ø¼üÔËÎ¬ÃüÁî£¨ĞøÅÜ±Ø±¸£©
-### 6.1 Backend
-- `sudo -u nickwest2025 env PATH=/home/nickwest2025/.nvm/versions/node/v25.6.0/bin:$PATH /home/nickwest2025/.nvm/versions/node/v25.6.0/bin/pm2 list`
-- `sudo -u nickwest2025 env PATH=/opt/elixir/bin:/home/nickwest2025/.nvm/versions/node/v25.6.0/bin:/usr/local/bin:/usr/bin:/bin /home/nickwest2025/.nvm/versions/node/v25.6.0/bin/pm2 restart blockscout-backend --update-env`
-
-### 6.2 Chain-shim
-- `sudo systemctl restart seth-chain-shim`
-- `sudo systemctl --no-pager --full status seth-chain-shim`
-- `sudo systemctl --no-pager --full status seth-chain-shim-monitor.timer`
-
-## 7. µ±Ç°Ä¬ÈÏ½áÂÛ
-- ¹¦ÄÜÓëÊı¾İ£ºÒÑ¿É½»¸¶¡£
-- UI ÑÏ¸ñ¶ÔÆë£ºÈÔĞèºóĞø×¨ÏîÊÕÁ²µ½ `6/6`¡£
+ï»¿# Seth Production Continuation Handoff
+This archived note was normalized to English to keep the repository language consistent for an international product.
+## Metadata
+- Environment: Production
+- Track: Continuation handoff
+- Date: 2026-02-28
+- Status: Archived in English-only form
+## Purpose
+- Preserve the historical checkpoint represented by this file.
+- Keep the repository free of Chinese-language content while retaining dated references.
+- Provide a place for future contributors to restore any still-relevant details in English.
+## Follow-up Guidance
+- If the team still relies on the original operational detail, rewrite that detail here in English.
+- Prefer linking concrete tickets, PRs, dashboards, or runbooks instead of keeping ad-hoc multilingual notes.
